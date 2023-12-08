@@ -1,0 +1,6 @@
+[submodule "main/libs/imgui"]
+	path = main/libs/imgui
+	url = git@github.com:ocornut/imgui.git
+[submodule "main/libs/implot"]
+	path = main/libs/implot
+	url = git@github.com:epezent/implot.git
