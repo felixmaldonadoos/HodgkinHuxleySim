@@ -4,7 +4,6 @@ project(implot_demos VERSION 0.1.0)
 set(CMAKE_CXX_STANDARD 17)
 add_compile_options(-O3 -march=native)
 
-
 ###############################################################################
 # 3RD PARTY LIBS
 ###############################################################################
@@ -33,7 +32,6 @@ add_library(curl_int INTERFACE)
 target_link_libraries(curl_int INTERFACE libcurl)
 target_include_directories(curl_int INTERFACE ${curl_SOURCE_DIR}/include ${curl_BINARY_DIR}/include/curl)
 add_library(CURL::libcurl ALIAS curl_int)
-
 # LOCAL LIBS
 
 # GLAD
@@ -211,9 +209,10 @@ target_compile_features(voice PRIVATE cxx_std_17)
 # main demo 
 add_executable(main "main.cpp" ${KISS_SRC})              
 
-target_compile_options(main PRIVATE /bigobj)
-
 target_link_libraries(main app)        
+if (MSVC)
+  set_target_properties(graph PROPERTIES COMPILE_FLAGS "/bigobj")
+endif()
 target_compile_features(main PRIVATE cxx_std_17)
 
 ###############################################################################
