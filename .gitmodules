@@ -4,3 +4,9 @@
 [submodule "libs/imgui"]
 	path = libs/imgui
 	url = git@github.com:felixmaldonadoos/imgui.git
+[submodule "libs/odeint-v2"]
+	path = libs/odeint-v2
+	url = git@github.com:headmyshoulder/odeint-v2.git
+[submodule "libs/boost"]
+	path = libs/boost
+	url = git@github.com:boostorg/boost.git

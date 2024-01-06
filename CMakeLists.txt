@@ -206,6 +206,37 @@ add_executable(voice "demos/voice.cpp" ${KISS_SRC})
 target_link_libraries(voice app)        
 target_compile_features(voice PRIVATE cxx_std_17)
 
+##### test model demo 
+
+# boost
+include_directories(${LIBS_PATH}/boost/libs)
+set(Boost_USE_STATIC_LIBS ON)
+set(Boost_USE_MULTITHREADED ON)
+set(Boost_USE_STATIC_RUNTIME OFF)
+find_package(Boost 1.50 MINIMUM REQUIRED COMPONENTS array)
+message(STATUS "Boost version: ${Boost_VERSION}")
+
+# This is needed if your Boost version is newer than your CMake version
+# or if you have an old version of CMake (<3.5)
+if(NOT TARGET Boost::Array)
+    add_library(Boost::Array IMPORTED INTERFACE)
+    set_property(TARGET Boost::Array PROPERTY
+        INTERFACE_INCLUDE_DIRECTORIES ${Boost_INCLUDE_DIR})
+    set_property(TARGET Boost::Array PROPERTY
+        INTERFACE_LINK_LIBRARIES ${Boost_LIBRARIES})
+endif()
+
+set(TESTS_PATH "${CMAKE_CURRENT_SOURCE_DIR}/tests")
+add_executable(lorenz "${TESTS_PATH}/lorenz.cpp")
+target_link_libraries(lorenz PUBLIC Boost::Array)
+target_compile_features(lorenz PRIVATE cxx_std_17)
+
+## DONT DELETE 
+#set(MODEL_SRC_PATH ${LIBS_PATH}/HHModel)
+#include_directories(${LIBS_PATH}/odeint-v2/include)
+#add_executable(model_only "${MODEL_SRC_PATH}/HodgkinHuxley.cpp")
+#target_compile_features(model_only PRIVATE cxx_std_17)
+
 # main demo 
 add_executable(main "main.cpp" ${KISS_SRC})              
 

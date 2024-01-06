@@ -182,13 +182,13 @@ inj_current = injection_current.step(t,100,200,max)
 
 #min = 10
 #max = 100
-#inj_current = injection_current.rampup(t,50,450,min,max)
-#
+#inj_current = injection_current.rampup(t,50,450,min,max
 
 model = HodgkinHuxley(t = t, inj_current = inj_current, E_K = -74)
-t, V, m, h, n , i_na, i_k,i_l = model.results()
+t, V, m, h, n , i_na, i_k,i_l = model.results() # store results
 
 
+# plot individual results over time
 fig, ax = plt.subplots(4,  figsize=(15,15), sharex = True)
 
 

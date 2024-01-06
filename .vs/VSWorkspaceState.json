@@ -1,8 +1,15 @@
 {
+  "ActiveTargetSystem": "WSL: Ubuntu",
   "ExpandedNodes": [
-    ""
+    "",
+    "\\libs",
+    "\\libs\\boost",
+    "\\libs\\boost\\libs",
+    "\\libs\\odeint-v2\\include",
+    "\\libs\\odeint-v2\\include\\boost",
+    "\\libs\\odeint-v2\\include\\boost\\numeric",
+    "\\tests"
   ],
-  "SelectedNode": "\\CppProperties.json",
-  "PreviewInSolutionExplorer": false,
-  "ActiveTargetSystem": "Local Machine"
+  "SelectedNode": "\\libs",
+  "PreviewInSolutionExplorer": false
 }
