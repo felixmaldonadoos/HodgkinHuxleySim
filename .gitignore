@@ -1,9 +1,11 @@
 Build/
 .vscode/
+.vs/
 *.code-workspace
 
 # Prerequisites
 *.d
+*db
 
 # Compiled Object files
 *.slo
