@@ -9,14 +9,6 @@
 #include <thread>
 #include <imgui_stdlib.h>
 
-
-#ifdef LINUX
-#include <unistd.h>
-#endif
-#ifdef WINDOWS
-#include <windows.h>
-#endif
-
 template <typename T>
 static inline T remap(T x, T x0, T x1, T y0, T y1)
 {
@@ -194,7 +186,7 @@ struct ImGraph : App {
 
 int main(int argc, char const* argv[])
 {
-    ImGraph app("ImGraph", 640, 480, argc, argv);
+    ImGraph app("Hodkin-Huxley Simulation by Felix A. Maldonado", 640, 480, argc, argv);
     app.Run();
     return 0;
 }
