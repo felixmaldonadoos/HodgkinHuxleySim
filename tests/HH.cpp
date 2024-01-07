@@ -9,6 +9,8 @@ typedef boost::array< double, 8 > state_type_params;
 std::vector<double> p = { 0.01, 0.0, 1.20, 55.16, 0.36, -72.14, 0.003, -49.42 }; // constant variables
 std::vector<double> y = { -68, 0.1, 0, 0 }; // initial conditions
 
+std::vector<std::vector<double>> y_store;
+
 double alpha_n(double V)
 {
     /*! alpha_n
@@ -74,16 +76,19 @@ void HH(const std::vector<double>& y, std::vector<double>& dxdt, double t)
 void write_model(const std::vector<double>& y, const double t)
 {
     std::cout << t << ',' << y[0] << ',' << y[1] << ',' << y[2] << ',' << y[3] << std::endl;
+    y_store.push_back(y);
 }
 
 int main(int argc, char** argv)
 {
-
-    double time_start = 0.0; 
-    double time_end = 1; 
-    int n_points = 50; 
+    /* run model only */
+    double time_start = 0.0;
+    double time_end = 1;
+    int n_points = 50;
     double h_step = time_end / n_points;
     boost::numeric::odeint::integrate(HH, y, 0.0, 10.0, 0.1, write_model);
+    std::cout << "finished solving model. Printing all datapoints\n"; 
+    std::cout << y_store.size() << std::endl; 
 }
 
 //
