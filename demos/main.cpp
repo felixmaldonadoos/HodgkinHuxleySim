@@ -8,13 +8,15 @@
 #include <imgui_stdlib.h>
 
 template <typename T>
-static inline T remap(T x, T x0, T x1, T y0, T y1) 
-{ return y0 + (x - x0) * (y1 - y0) / (x1 - x0); }
+static inline T remap(T x, T x0, T x1, T y0, T y1)
+{
+    return y0 + (x - x0) * (y1 - y0) / (x1 - x0);
+}
 
 
 struct Expression {
     Expression() {
-        table.add_variable("x",x);
+        table.add_variable("x", x);
         table.add_constants();
         expr.register_symbol_table(table);
     }
@@ -88,44 +90,25 @@ struct ImGraph : App {
 
     void Start() override {
         expr.set("0.25*sin(2*pi*5*x)+0.5");
-        expr.color = ImVec4(1,0.75f,0,1);
+        expr.color = ImVec4(1, 0.75f, 0, 1);
     }
 
     void Update() override {
-   
-        ImGui::SetNextWindowSize(GetWindowSize());
-        ImGui::SetNextWindowPos({0,0});
 
-        ImGui::Begin("ImGraph",nullptr,ImGuiWindowFlags_NoCollapse|ImGuiWindowFlags_NoTitleBar|ImGuiWindowFlags_NoResize);
+        ImGui::SetNextWindowSize(GetWindowSize());
+        ImGui::SetNextWindowPos({ 0,0 });
+
+        ImGui::Begin("ImGraph", nullptr, ImGuiWindowFlags_NoCollapse | ImGuiWindowFlags_NoTitleBar | ImGuiWindowFlags_NoResize);
         bool valid = expr.valid;
         if (!valid)
-            ImGui::PushStyleColor(ImGuiCol_FrameBg, {1,0,0,1});
-        if (ImGui::InputText("f(x)",&expr.str,ImGuiInputTextFlags_EnterReturnsTrue)) 
+            ImGui::PushStyleColor(ImGuiCol_FrameBg, { 1,0,0,1 });
+        if (ImGui::InputText("f(x)", &expr.str, ImGuiInputTextFlags_EnterReturnsTrue))
             expr.set(expr.str);
         if (!valid)
             ImGui::PopStyleColor();
         ImGui::SameLine();
-        ImGui::ColorEdit4("##Color",&expr.color.x,ImGuiColorEditFlags_NoInputs);
-        /*
-        if (ImPlot::BeginPlot("##Plot",0,0,ImVec2(-1,-1),0,ImPlotAxisFlags_NoInitialFit,ImPlotAxisFlags_NoInitialFit)) 
-        {
-            limits = ImPlot::GetPlotLimits();
-            if (valid) {
-                ImPlot::SetNextLineStyle(expr.color);
-                ImPlot::PlotLineG("##item",
-                    [](int idx, void* data) {
-                    auto& self = *(ImGraph*)data;
-                    double x = remap((double)idx, 0.0, 9999.0, self.limits.X.Min, self.limits.X.Max);
-                    double y = self.expr.eval(x);
-                    return ImPlotPoint(x,y);
-                    },
-                    this,
-                    10000);
-            }
-            ImPlot::EndPlot();
-        }
-        */
-        
+        ImGui::ColorEdit4("##Color", &expr.color.x, ImGuiColorEditFlags_NoInputs);
+
         ImGui::BulletText("Move your mouse to change the data!");
         ImGui::BulletText("This example assumes 60 FPS. Higher FPS requires larger buffer size.");
         static ScrollingBuffer sdata1, sdata2;
@@ -166,9 +149,9 @@ struct ImGraph : App {
     }
 };
 
-int main(int argc, char const *argv[])
+int main(int argc, char const* argv[])
 {
-    ImGraph app("ImGraph",640,480,argc,argv);
+    ImGraph app("ImGraph", 640, 480, argc, argv);
     app.Run();
     return 0;
 }
