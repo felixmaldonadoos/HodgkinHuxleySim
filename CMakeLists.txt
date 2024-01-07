@@ -159,13 +159,18 @@ add_executable(demo "demos/demo.cpp")
 target_link_libraries(demo app)
 
 # FIND BOOST 
+find_package(Boost 1.50 REQUIRED)
+
 set(TESTS_PATH "${CMAKE_CURRENT_SOURCE_DIR}/tests")
 add_executable(lorenz "${TESTS_PATH}/lorenz.cpp")
-#set(BOOST_ROOT "${CMAKE_SOURCE_DIR}/libs/boost")
-find_package(Boost 1.50 REQUIRED)
 include_directories(${Boost_INCLUDE_DIRS})
 target_link_libraries(lorenz ${Boost_LIBRARIES})
 target_compile_features(lorenz PRIVATE cxx_std_17)
+
+# === HH demo ===
+add_executable(HH "${TESTS_PATH}/HH.cpp")
+target_link_libraries(HH ${Boost_LIBRARIES})
+target_compile_features(HH PRIVATE cxx_std_17)
 
 # ===== main demo ====
 add_executable(HodkingHuxleySim "demos/main.cpp" "common/Plot.cpp" "common/Plot.h" ${KISS_SRC} ${Boost_LIBRARIES})              

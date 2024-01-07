@@ -205,16 +205,133 @@ void write_lorenz(const state_type& x, const double t)
     std::cout << t << '\t' << x[0] << '\t' << x[1] << '\t' << x[2] << std::endl;
 }
 
-//int main(int argc, char** argv)
-//{
-//    state_type x = { 10.0 , 1.0 , 1.0 }; // initial conditions
-//    boost::numeric::odeint::integrate(lorenz, x, 0.0, 25.0, 0.1, write_lorenz);
-//}
+
+
+struct push_back_state_and_time
+{
+    /*! Stores each set of points during the integration step.
+     *
+     * This structre stores the time value and the variable set in one file, this is
+     * the libboost odeint observer so the vectors x and t contain each time step value for time,
+     * voltaje, and gating probabilities h, m, and n.
+     *
+     * */
+
+    std::vector< std::vector<double> >& m_states;
+    std::vector< double >& m_times;
+
+    push_back_state_and_time(std::vector< std::vector<double> >& states, std::vector< double >& times)
+        : m_states(states), m_times(times) { }
+
+    void operator()(const std::vector<double>& x, double t)
+    {
+        m_states.push_back(x);
+        m_times.push_back(t);
+    }
+};
+
+
+/*!
+ *  \brief Gating functions for the model
+ *
+ *  The Hodgking-Huxley model it's endowed with a set of auxiliary gating functions
+ *  Those functions proposed on the original paper of the 1952 called
+ *  _A quantitative description of membrane current and it's applications to conduction and excitation in nerve_
+ *   published at J.physiol. (1952) 117, 500-544 it's free online
+ *
+ * In other books like _Nonlinear dynamics in physiology and medicine_ from Anne Beuter et al.
+ * or _Mathematical aspects of the Hodgking-Huxley Neural theory_ from Janne Cronin
+ * are other formulations for the gating functions
+ */
+
+
+double alpha_n(double V)
+{
+ /*! alpha_n
+ * The alpha gating function for the n gate
+ *
+ */
+    return (0.01 * (V + 50.0)) / (1.0 - exp(-(V + 50.0) / 10.0));
+}
+
+/*! \def beta_n
+ * \brief The beta gating function for the n gate
+ *
+ */
+double beta_n(double V)
+{
+    return 0.125 * exp(-(V + 60.0) / 80.0);
+}
+
+/*! \def alpha_m
+ * \brief The alpha gating function for the m gate
+ *
+ */
+double alpha_m(double V)
+{
+    return (0.1 * (V + 35.0)) / (1 - exp(-(V + 35.0) / 10.0));
+}
+
+/*! \def beta_m
+ * \brief The beta gating function for the m gate
+ *
+ */
+double beta_m(double V)
+{
+    return 4.0 * exp(-(V + 60.0) / 18.0);
+}
+
+/*! \def alpha_h
+ * \brief The alpha gating function for the h gate
+ *
+ */
+double alpha_h(double V)
+{
+    return 0.07 * exp(-(V + 60.0) / 20.0);
+}
+
+/*! \def beta_h
+ * \brief The beta gating function for the h gate
+ *
+ */
+double beta_h(double V)
+{
+    return 1.0 / (1.0 + exp(-(V + 30.0) / 10.0));
+}
+
+
+class hh_model
+{
+private:
+
+    std::vector<double> parameters;
+
+public:
+
+    hh_model(std::vector<double> params) : parameters(params) { }
+
+    void operator()(const std::vector<double>& y, std::vector<double>& f, const double /* t */)
+    {
+        f[0] = (1 / parameters[0]) * (parameters[1] - parameters[2] * pow(y[1], 3) * y[2] * (y[0] - parameters[3]) - parameters[4] * pow(y[3], 4) * (y[0] - parameters[5]) - parameters[6] * (y[0] - parameters[7]));
+        f[1] = alpha_m(y[0]) * (1 - y[1]) - beta_m(y[0]) * y[1];
+        f[2] = alpha_h(y[0]) * (1 - y[2]) - beta_h(y[0]) * y[2];
+        f[3] = alpha_n(y[0]) * (1 - y[3]) - beta_n(y[0]) * y[3];
+    }
+};
 
 int main(int argc, char const* argv[])
 {
     state_type x = { 10.0 , 1.0 , 1.0 }; // initial conditions
     boost::numeric::odeint::integrate(lorenz, x, 0.0, 25.0, 0.1, write_lorenz);
+
+    ///* solve HH model */
+    ////HH_InitConds y = { -68, 0.1, 0, 0}; // initial conditions
+    //double time_start = 0.0;
+    //double time_final = 25.0; 
+    //double h_step = time_final / 100; // 100 points
+    //boost::numeric::odeint::integrate(HHModel, y, time_start, time_final, h_step, write_HHModel);
+
+    /* run GUI */
     //ImGraph app("Hodkin-Huxley Simulation by Felix A. Maldonado", 640, 480, argc, argv);
     //app.Run();
     return 0;
