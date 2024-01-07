@@ -158,104 +158,16 @@ target_compile_features(app PRIVATE cxx_std_17)
 add_executable(demo "demos/demo.cpp")
 target_link_libraries(demo app)
 
-# maps demo
-add_executable(maps "demos/maps.cpp")
-target_link_libraries(maps app CURL::libcurl)
-target_compile_features(maps PRIVATE cxx_std_17)
+# FIND BOOST 
+set(TESTS_PATH "${CMAKE_CURRENT_SOURCE_DIR}/tests")
+add_executable(lorenz "${TESTS_PATH}/lorenz.cpp")
+#set(BOOST_ROOT "${CMAKE_SOURCE_DIR}/libs/boost")
+find_package(Boost 1.50 REQUIRED)
+include_directories(${Boost_INCLUDE_DIRS})
+target_link_libraries(lorenz ${Boost_LIBRARIES})
+target_compile_features(lorenz PRIVATE cxx_std_17)
 
-# perlin demo
-add_executable(perlin "demos/perlin.cpp")
-target_link_libraries(perlin app)
-target_include_directories(perlin PRIVATE "3rdparty")
-
-# main demo
-add_executable(HodkingHuxleySim "demos/main.cpp" "common/Plot.cpp" "common/Plot.h" ${KISS_SRC})              
+# ===== main demo ====
+add_executable(HodkingHuxleySim "demos/main.cpp" "common/Plot.cpp" "common/Plot.h" ${KISS_SRC} ${Boost_LIBRARIES})              
 target_link_libraries(HodkingHuxleySim app)        
 target_compile_features(HodkingHuxleySim PRIVATE cxx_std_17)
-
-# mandel demo
-add_executable(mandel "demos/mandel.cpp")
-target_link_libraries(mandel app)
-target_include_directories(mandel PRIVATE "3rdparty")
-if (MSVC)
-  target_compile_options(mandel PRIVATE /arch:AVX2 /fp:fast /openmp)
-endif()
-
-# graph demo
-add_executable(graph "demos/graph.cpp")
-target_link_libraries(graph app)
-target_include_directories(graph PRIVATE "3rdparty")
-if (MSVC)
-  set_target_properties(graph PROPERTIES COMPILE_FLAGS "/bigobj")
-endif()
-
-# filter demo
-add_executable(filter "demos/filter.cpp" ${KISS_SRC})
-target_link_libraries(filter app iir::iir_static)
-target_compile_features(filter PRIVATE cxx_std_17)
-target_compile_definitions(filter PRIVATE kiss_fft_scalar=double NOMINMAX)
-
-# spectrogram demo
-add_executable(spectrogram "demos/spectrogram.cpp" ${KISS_SRC})              
-target_link_libraries(spectrogram app)        
-target_compile_features(spectrogram PRIVATE cxx_std_17)
-add_custom_command(TARGET spectrogram POST_BUILD  COMMAND ${CMAKE_COMMAND} -E copy ${CMAKE_CURRENT_SOURCE_DIR}/resources/audio/aphex_twin_formula.wav $<TARGET_FILE_DIR:spectrogram>)
-
-# stocks demo
-add_executable(stocks "demos/stocks.cpp" )
-target_link_libraries(stocks app fmt::fmt CURL::libcurl)
-target_compile_features(stocks PRIVATE cxx_std_17)
-
-# voice demo
-add_executable(voice "demos/voice.cpp" ${KISS_SRC})              
-target_link_libraries(voice app)        
-target_compile_features(voice PRIVATE cxx_std_17)
-
-##### test model demo 
-
-# boost
-#include_directories(${LIBS_PATH}/boost/libs)
-#set(Boost_USE_STATIC_LIBS ON)
-#set(Boost_USE_MULTITHREADED ON)
-#set(Boost_USE_STATIC_RUNTIME OFF)
-#find_package(Boost 1.50 MINIMUM REQUIRED COMPONENTS array)
-#message(STATUS "Boost version: ${Boost_VERSION}")
-
-# This is needed if your Boost version is newer than your CMake version
-# or if you have an old version of CMake (<3.5)
-#if(NOT TARGET Boost::Array)
-    add_library(Boost::Array IMPORTED INTERFACE)
-    set_property(TARGET Boost::Array PROPERTY
-        INTERFACE_INCLUDE_DIRECTORIES ${Boost_INCLUDE_DIR})
-    set_property(TARGET Boost::Array PROPERTY
-        INTERFACE_LINK_LIBRARIES ${Boost_LIBRARIES})
-#endif()
-
-#set(TESTS_PATH "${CMAKE_CURRENT_SOURCE_DIR}/tests")
-#add_executable(lorenz "${TESTS_PATH}/lorenz.cpp")
-#target_link_libraries(lorenz PUBLIC Boost::Array)
-#target_compile_features(lorenz PRIVATE cxx_std_17)
-
-## DONT DELETE 
-#set(MODEL_SRC_PATH ${LIBS_PATH}/HHModel)
-#include_directories(${LIBS_PATH}/odeint-v2/include)
-#add_executable(model_only "${MODEL_SRC_PATH}/HodgkinHuxley.cpp")
-#target_compile_features(model_only PRIVATE cxx_std_17)
-
-###############################################################################
-# TEST APPS
-###############################################################################
-
-add_executable(benchmark "tests/benchmark.cpp")
-target_link_libraries(benchmark app)
-target_compile_features(benchmark PRIVATE cxx_std_17)
-add_custom_command(TARGET spectrogram POST_BUILD 
-                   COMMAND ${CMAKE_COMMAND} -E copy_directory 
-                   ${CMAKE_CURRENT_SOURCE_DIR}/resources/shaders/
-                   $<TARGET_FILE_DIR:spectrogram>/shaders/)
-
-if (MSVC)
-  target_compile_options(benchmark PRIVATE /arch:AVX2 /fp:fast)
-else()
-  target_compile_options(benchmark PRIVATE -lstdc++fs -mavx2 -Ofast)
-endif()

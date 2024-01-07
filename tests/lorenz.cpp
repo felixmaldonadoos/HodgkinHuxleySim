@@ -2,9 +2,6 @@
 #include <boost/array.hpp>
 #include <boost/numeric/odeint.hpp>
 
-using namespace std;
-using namespace boost::numeric::odeint;
-
 const double sigma = 10.0;
 const double R = 28.0;
 const double b = 8.0 / 3.0;
@@ -20,11 +17,11 @@ void lorenz(const state_type& x, state_type& dxdt, double t)
 
 void write_lorenz(const state_type& x, const double t)
 {
-    cout << t << '\t' << x[0] << '\t' << x[1] << '\t' << x[2] << endl;
+    std::cout << t << '\t' << x[0] << '\t' << x[1] << '\t' << x[2] << std::endl;
 }
 
 int main(int argc, char** argv)
 {
     state_type x = { 10.0 , 1.0 , 1.0 }; // initial conditions
-    integrate(lorenz, x, 0.0, 25.0, 0.1, write_lorenz);
+    boost::numeric::odeint::integrate(lorenz, x, 0.0, 25.0, 0.1, write_lorenz);
 }

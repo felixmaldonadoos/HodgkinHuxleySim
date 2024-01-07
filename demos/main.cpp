@@ -8,6 +8,8 @@
 #include <chrono>
 #include <thread>
 #include <imgui_stdlib.h>
+#include <boost/array.hpp>
+#include <boost/numeric/odeint.hpp>
 
 template <typename T>
 static inline T remap(T x, T x0, T x1, T y0, T y1)
@@ -94,6 +96,7 @@ void Sparkline(const char* id, const float* values, int count, float min_v, floa
     }
     ImPlot::PopStyleVar();
 }
+
 struct ImGraph : App {
 
     Expression expr;
@@ -184,9 +187,35 @@ struct ImGraph : App {
     }
 };
 
+const double sigma = 10.0;
+const double R = 28.0;
+const double b = 8.0 / 3.0;
+
+typedef boost::array< double, 3 > state_type;
+
+void lorenz(const state_type& x, state_type& dxdt, double t)
+{
+    dxdt[0] = sigma * (x[1] - x[0]);
+    dxdt[1] = R * x[0] - x[1] - x[0] * x[2];
+    dxdt[2] = -b * x[2] + x[0] * x[1];
+}
+
+void write_lorenz(const state_type& x, const double t)
+{
+    std::cout << t << '\t' << x[0] << '\t' << x[1] << '\t' << x[2] << std::endl;
+}
+
+//int main(int argc, char** argv)
+//{
+//    state_type x = { 10.0 , 1.0 , 1.0 }; // initial conditions
+//    boost::numeric::odeint::integrate(lorenz, x, 0.0, 25.0, 0.1, write_lorenz);
+//}
+
 int main(int argc, char const* argv[])
 {
-    ImGraph app("Hodkin-Huxley Simulation by Felix A. Maldonado", 640, 480, argc, argv);
-    app.Run();
+    state_type x = { 10.0 , 1.0 , 1.0 }; // initial conditions
+    boost::numeric::odeint::integrate(lorenz, x, 0.0, 25.0, 0.1, write_lorenz);
+    //ImGraph app("Hodkin-Huxley Simulation by Felix A. Maldonado", 640, 480, argc, argv);
+    //app.Run();
     return 0;
 }
