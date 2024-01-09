@@ -3,6 +3,9 @@
 Author: by Felix A. Maldonado Osorio
 Date: January 6, 2024
 
+## To do: 
+- voltage seems off. need to recheck equations and what the injection current looks like. maybe indexing is off.
+
 # Notice:
 
 This is a work in progress. Currently focusing on Ubuntu build in WSL2. 
@@ -20,6 +23,7 @@ This is a work in progress. Currently focusing on Ubuntu build in WSL2.
 - Imgui
 - Implot
 - CMake (minimum 3.0.0)
+- sudo apt install gnuplot-qt
 
 # Current version has: 
 

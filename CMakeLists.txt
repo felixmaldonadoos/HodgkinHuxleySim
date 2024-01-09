@@ -167,14 +167,30 @@ include_directories(${Boost_INCLUDE_DIRS})
 target_link_libraries(lorenz ${Boost_LIBRARIES})
 target_compile_features(lorenz PRIVATE cxx_std_17)
 
+# FIND SCIPLOT
+include(FetchContent) # If not included already
+
+FetchContent_Declare(sciplot_content
+  GIT_REPOSITORY https://github.com/sciplot/sciplot.git
+  GIT_TAG master)
+
+FetchContent_GetProperties(sciplot_content)
+if(NOT sciplot_content_POPULATED)
+  FetchContent_Populate(sciplot_content)
+endif()
+
+include_directories(${sciplot_content_SOURCE_DIR})
+
 # LOOK FOR HELPERS
-include_directories(${CMAKE_CURRENT_SOURCE_DIR}/helpers)
+include_directories(${CMAKE_CURRENT_SOURCE_DIR}/helpers ${LIBS_PATH}/sciplot)
 
 add_executable(HH "${TESTS_PATH}/HH.cpp" 
     ${CMAKE_CURRENT_SOURCE_DIR}/helpers/gatingfunctions.h 
     ${CMAKE_CURRENT_SOURCE_DIR}/helpers/gatingfunctions.cpp
-    ${CMAKE_CURRENT_SOURCE_DIR}/helpers/Models.h
-    ${CMAKE_CURRENT_SOURCE_DIR}/helpers/Models.cpp
+    ${CMAKE_CURRENT_SOURCE_DIR}/helpers/InjectionCurrent.cpp
+    ${CMAKE_CURRENT_SOURCE_DIR}/helpers/InjectionCurrent.h
+    #${CMAKE_CURRENT_SOURCE_DIR}/helpers/HH_Guarin.cpp
+    #${CMAKE_CURRENT_SOURCE_DIR}/helpers/HH_Guarin.h
 )
 target_link_libraries(HH ${Boost_LIBRARIES} imgui)
 target_compile_features(HH PRIVATE cxx_std_17)

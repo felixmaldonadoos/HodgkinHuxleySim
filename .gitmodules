@@ -10,3 +10,9 @@
 [submodule "libs/boost"]
 	path = libs/boost
 	url = git@github.com:boostorg/boost.git
+[submodule "libs/matplotlib-cpp"]
+	path = libs/matplotlib-cpp
+	url = https://github.com/lava/matplotlib-cpp.git
+[submodule "libs/--recursive"]
+	path = libs/--recursive
+	url = https://github.com/sciplot/sciplot
