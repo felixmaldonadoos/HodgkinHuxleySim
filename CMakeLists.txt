@@ -173,6 +173,8 @@ include_directories(${CMAKE_CURRENT_SOURCE_DIR}/helpers)
 add_executable(HH "${TESTS_PATH}/HH.cpp" 
     ${CMAKE_CURRENT_SOURCE_DIR}/helpers/gatingfunctions.h 
     ${CMAKE_CURRENT_SOURCE_DIR}/helpers/gatingfunctions.cpp
+    ${CMAKE_CURRENT_SOURCE_DIR}/helpers/Models.h
+    ${CMAKE_CURRENT_SOURCE_DIR}/helpers/Models.cpp
 )
 target_link_libraries(HH ${Boost_LIBRARIES} imgui)
 target_compile_features(HH PRIVATE cxx_std_17)
