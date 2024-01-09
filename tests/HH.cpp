@@ -1,7 +1,8 @@
 #include <iostream>
+#include <fstream>
 #include <boost/array.hpp>
 #include <boost/numeric/odeint.hpp>
-
+#include "gatingfunctions.h"
 
 typedef boost::array< double, 4 > state_type;
 typedef boost::array< double, 8 > state_type_params;
@@ -10,60 +11,6 @@ std::vector<double> p = { 0.01, 0.0, 1.20, 55.16, 0.36, -72.14, 0.003, -49.42 };
 std::vector<double> y = { -68, 0.1, 0, 0 }; // initial conditions
 
 std::vector<std::vector<double>> y_store;
-
-double alpha_n(double V)
-{
-    /*! alpha_n
-    * The alpha gating function for the n gate
-    *
-    */
-    return (0.01 * (V + 50.0)) / (1.0 - exp(-(V + 50.0) / 10.0));
-}
-
-/*! \def beta_n
- * \brief The beta gating function for the n gate
- *
- */
-double beta_n(double V)
-{
-    return 0.125 * exp(-(V + 60.0) / 80.0);
-}
-
-/*! \def alpha_m
- * \brief The alpha gating function for the m gate
- *
- */
-double alpha_m(double V)
-{
-    return (0.1 * (V + 35.0)) / (1 - exp(-(V + 35.0) / 10.0));
-}
-
-/*! \def beta_m
- * \brief The beta gating function for the m gate
- *
- */
-double beta_m(double V)
-{
-    return 4.0 * exp(-(V + 60.0) / 18.0);
-}
-
-/*! \def alpha_h
- * \brief The alpha gating function for the h gate
- *
- */
-double alpha_h(double V)
-{
-    return 0.07 * exp(-(V + 60.0) / 20.0);
-}
-
-/*! \def beta_h
- * \brief The beta gating function for the h gate
- *
- */
-double beta_h(double V)
-{
-    return 1.0 / (1.0 + exp(-(V + 30.0) / 10.0));
-}
 
 void HH(const std::vector<double>& y, std::vector<double>& dxdt, double t)
 {   
@@ -79,6 +26,30 @@ void write_model(const std::vector<double>& y, const double t)
     y_store.push_back(y);
 }
 
+void write_model_csv() {
+
+    // Open a CSV file for writing
+    std::ofstream file("C:/Users/famal/Documents/Projects/HodkinHuxleySim/extras/output.csv");
+
+    // Check if file is open
+    if (!file.is_open()) {
+        std::cerr << "Error: Could not open the file." << std::endl;
+        return;
+    }
+
+    // Iterate over the data and write to the file
+    for (const auto& row : y_store) {
+        for (size_t i = 0; i < row.size(); ++i) {
+            file << row[i];
+            if (i < row.size() - 1) file << ","; // Add comma after each element except the last
+        }
+        file << "\n"; // End of row
+    }
+
+    // Close the file
+    file.close();
+}
+
 int main(int argc, char** argv)
 {
     /* run model only */
@@ -87,8 +58,9 @@ int main(int argc, char** argv)
     int n_points = 50;
     double h_step = time_end / n_points;
     boost::numeric::odeint::integrate(HH, y, 0.0, 10.0, 0.1, write_model);
-    std::cout << "finished solving model. Printing all datapoints\n"; 
-    std::cout << y_store.size() << std::endl; 
+    std::cout << "Saving to file 'output.csv'\n";
+    std::cout << "Using gating functions from `gatingfunctions.cpp`!\n";
+    //write_model_csv();
 }
 
 //

@@ -27,6 +27,5 @@ This is a work in progress. Currently focusing on Ubuntu build in WSL2.
 
 # Resources/Acknowledgements
 
-- demo was implemented from:
-
-- etc etc
+- https://github.com/Daniel-M/Hodgking-Huxley
+- https://github.com/epezent/implot_demos

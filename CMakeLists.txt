@@ -167,12 +167,23 @@ include_directories(${Boost_INCLUDE_DIRS})
 target_link_libraries(lorenz ${Boost_LIBRARIES})
 target_compile_features(lorenz PRIVATE cxx_std_17)
 
-# === HH demo ===
-add_executable(HH "${TESTS_PATH}/HH.cpp")
-target_link_libraries(HH ${Boost_LIBRARIES})
+# LOOK FOR HELPERS
+include_directories(${CMAKE_CURRENT_SOURCE_DIR}/helpers)
+
+add_executable(HH "${TESTS_PATH}/HH.cpp" 
+    ${CMAKE_CURRENT_SOURCE_DIR}/helpers/gatingfunctions.h 
+    ${CMAKE_CURRENT_SOURCE_DIR}/helpers/gatingfunctions.cpp
+)
+target_link_libraries(HH ${Boost_LIBRARIES} imgui)
 target_compile_features(HH PRIVATE cxx_std_17)
 
 # ===== main demo ====
-add_executable(HodkingHuxleySim "demos/main.cpp" "common/Plot.cpp" "common/Plot.h" ${KISS_SRC} ${Boost_LIBRARIES})              
+
+add_executable(HodkingHuxleySim 
+    "demos/main.cpp" 
+    "common/Plot.cpp" 
+    "common/Plot.h" 
+    ${KISS_SRC} 
+    ${Boost_LIBRARIES})              
 target_link_libraries(HodkingHuxleySim app)        
 target_compile_features(HodkingHuxleySim PRIVATE cxx_std_17)
