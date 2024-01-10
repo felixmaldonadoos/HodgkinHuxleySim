@@ -3,20 +3,20 @@ Date: January 6, 2024
 
 # Introduction
 
-## To do: 
+### To do: 
 - check action potential model. AP is not reaching baseline. 
 - voltage seems off. need to recheck equations and what the injection current looks like. maybe indexing is off.
 - rendering issues. have seen some bugs online regarding zink and nvidia drivers. 
 - uninstalling ```gnuplot-qt``` does not fix rendering issues.
 
-## Notice:
+### Notice:
 
 # Setup
 This is a work in progress. Currently focusing on Ubuntu 22 build in WSL2. 
-## My system
+### My system
 ```Linux username 5.15.133.1-microsoft-standard-WSL2 #1 SMP Thu Oct 5 21:02:42 UTC 2023 x86_64 x86_64 x86_64 GNU/Linux```
 
-## Installation:
+### Installation:
 - Clone this repo recursively to include all submodules.
 
 ``` 
@@ -25,7 +25,7 @@ sudo apt-get install libboost-all-dev
 apt install gnuplot-qt
 ```
 
-## Dependencies
+### Dependencies
 - CMake (minimum 3.0.0)
 - Imgui 
 - Implot
@@ -34,10 +34,10 @@ apt install gnuplot-qt
 
 Note: To run imgui's opengl and glfw implementation on WSL2 Ubuntu 22 but I still had to install ``` Windows SDK 8.1 ``` (found in ```resources/sdksetup.exe``` folder) and ```MSVC v140 - Vs 2015 C++ build tools (v14.00)```.
 # Results
-## Current version has: 
+### Current version has: 
 - HH.cpp creates plots showing gating values and action potential. Model is still off. 
 
-## Demos (to do)
+### Demos (to do)
 
 |Demo|Description|Image|
 |---|---|---|
@@ -45,7 +45,7 @@ Note: To run imgui's opengl and glfw implementation on WSL2 Ubuntu 22 but I stil
 |`tests/HH.cpp`|Simple filter toy for educational purposes. Displays time domain input/output signals, and the frequency domain transfer function, amplitude spectrum, etc.|![filter](https://raw.githubusercontent.com/epezent/implot_demos/master/screenshots/filter.png)|
 
 
-## Resources/Acknowledgements
+### Resources/Acknowledgements
 - https://github.com/Daniel-M/Hodgking-Huxley
 - https://github.com/epezent/implot_demos
 
