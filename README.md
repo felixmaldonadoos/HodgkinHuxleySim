@@ -23,7 +23,7 @@ Solved by installing ```xorg-fonts-75dpi and xorg-fonts-100dpi```
 |CMake Error at /usr/share/cmake-3.22/Modules/FindPackageHandleStandardArgs.cmake:230 (message): Could NOT find X11 (missing: X11_X11_INCLUDE_PATH X11_X11_LIB)<br> /usr/share/cmake-3.22/Modules/FindPackageHandleStandardArgs.cmake| ```apt install xorg-dev``` |
 |CMake Error at /usr/share/cmake-3.22/Modules/FindPackageHandleStandardArgs.cmake:230 (message): Could NOT find OpenSSL, try to set the path to OpenSSL root <br>folder in the system variable OPENSSL_ROOT_DIR (missing: OPENSSL_CRYPTO_LIBRARY OPENSSL_INCLUDE_DIR) /usr/share/cmake-3.22/Modules/FindPackageHandleStandardArgs.cmake |```apt-get install libssl-dev```|
 |Checking for module 'gtk+-3.0' 1> [CMake] -- No package 'gtk+-3.0' found |```apt-get install build-essential libgtk-3-dev```|
-
+|gdp not found|```sudo apt-get install build-essential gdb```|
 # Setup
 This is a work in progress. Currently focusing on Ubuntu 22 build in WSL2. 
 ### My system
