@@ -12,10 +12,11 @@ Date: January 6, 2024
 # Notice:
 
 This is a work in progress. Currently focusing on Ubuntu 22 build in WSL2. 
+# My system
+```Linux username 5.15.133.1-microsoft-standard-WSL2 #1 SMP Thu Oct 5 21:02:42 UTC 2023 x86_64 x86_64 x86_64 GNU/Linux```
 
 # Installation:
-
-- Clone this repo recursively to include all submodules 
+- Clone this repo recursively to include all submodules.
 
 ``` 
 
@@ -25,8 +26,6 @@ apt install gnuplot-qt
 
 ```
 
-- (On Linux) install Boost with ``` sudo apt-get install libboost-all-dev ```
-
 ### Dependencies
 - CMake (minimum 3.0.0)
 - Imgui 
@@ -35,7 +34,6 @@ apt install gnuplot-qt
 - gnuplot-qt (required by sciplot for use in tests/HH.cpp)
 
 Note: To run imgui's opengl and glfw implementation on WSL2 Ubuntu 22 but I still had to install ``` Windows SDK 8.1 ``` (found in ```resources/sdksetup.exe``` folder) and ```MSVC v140 - Vs 2015 C++ build tools (v14.00)```.
-
 
 # Current version has: 
 - HH.cpp creates plots showing gating values and action potential. Model is still off. 
