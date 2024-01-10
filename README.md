@@ -19,11 +19,9 @@ This is a work in progress. Currently focusing on Ubuntu 22 build in WSL2.
 - Clone this repo recursively to include all submodules.
 
 ``` 
-
 git clone --recursive-submodules https://github.com/felixmaldonadoos/HodgkinHuxleySim.git 
 sudo apt-get install libboost-all-dev
 apt install gnuplot-qt
-
 ```
 
 ### Dependencies
@@ -51,14 +49,3 @@ Note: To run imgui's opengl and glfw implementation on WSL2 Ubuntu 22 but I stil
 |`tests/HH.cpp`|Simple filter toy for educational purposes. Displays time domain input/output signals, and the frequency domain transfer function, amplitude spectrum, etc.|![filter](https://raw.githubusercontent.com/epezent/implot_demos/master/screenshots/filter.png)|
 
 ## Results (to do)
-
-|Figure|Description|Image|
-|---|---|---|
-|`Injection Current`|SAVE PICTURE| |
-|`Action potential (Voltage)`|SAVE PICTURE|![filter](https://raw.githubusercontent.com/epezent/implot_demos/master/screenshots/filter.png)|
-|`Gating`|NEED TO IMPLEMENT!|![spectrogram](https://github.com/epezent/implot_demos/blob/master/screenshots/spectrogram.png)|
-|`maps.cpp`|OpenStreetMap world map viewer. Downloads and displays zoomable tile maps in a plot.|![maps](https://github.com/epezent/implot_demos/blob/master/screenshots/maps.png)|
-|`mandel.cpp`|Realtime Mandelbrot viewer using AVX2 and OpenMP acceleration. *Recommend compiling with ImPlot `backends` branch.*|![mandel](https://github.com/epezent/implot_demos/blob/master/screenshots/mandel.png)|
-|`perlin.cpp`|Renders perlin noise in a heatmap.|![perlin](https://github.com/epezent/implot_demos/blob/master/screenshots/perlin.png)|
-|`graph.cpp`|Simple graphing calculator using `exprtk` expression evaluator.|![perlin](https://github.com/epezent/implot_demos/blob/master/screenshots/graph.png)|
-|`stocks.cpp`|Downloads and displays historical stock data from Yahoo Finance.|![perlin](https://github.com/epezent/implot_demos/blob/master/screenshots/stocks.png)|
