@@ -20,7 +20,7 @@ Solved by installing ```xorg-fonts-75dpi and xorg-fonts-100dpi```
 |Error|My Solution|
 |---|---|
 |Error of failed request: BadName (named color or font does not exist) <br> Major opcode of failed request: 45 (X_OpenFont) Serial number of failed request: 21 <br> Current serial number in output stream: 25| Install ```xorg-fonts-75dpi``` and ```xorg-fonts-100dpi```
-| err | expl |
+| CMake Error at /usr/share/cmake-3.22/Modules/FindPackageHandleStandardArgs.cmake:230 (message): Could NOT find X11 (missing: X11_X11_INCLUDE_PATH X11_X11_LIB)<br> /usr/share/cmake-3.22/Modules/FindPackageHandleStandardArgs.cmake| ```apt install xorg-dev``` |
 # Setup
 This is a work in progress. Currently focusing on Ubuntu 22 build in WSL2. 
 ### My system
@@ -35,6 +35,7 @@ sudo apt-get install libboost-all-dev
 apt install gnuplot-qt
 apt install cmake
 apt install ninja-build
+apt install xorg-dev
 ```
 
 ### Dependencies
