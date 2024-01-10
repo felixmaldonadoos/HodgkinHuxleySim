@@ -10,6 +10,11 @@ Date: January 6, 2024
 - uninstalling ```gnuplot-qt``` does not fix rendering issues.
 
 ### Notice:
+- You may get a weird zink driver issue (I believe with QT dependency for matplotlib). Make sure you have this driver:
+```
+apt-file search zink_dri.so
+libgl1-mesa-dri: /usr/lib/x86_64-linux-gnu/dri/zink_dri.so
+```
 
 # Setup
 This is a work in progress. Currently focusing on Ubuntu 22 build in WSL2. 
