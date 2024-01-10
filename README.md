@@ -33,10 +33,13 @@ This is a work in progress. Currently focusing on Ubuntu 22 build in WSL2.
 git clone --recurse-submodules https://github.com/felixmaldonadoos/HodgkinHuxleySim.git 
 sudo apt-get install libboost-all-dev
 apt install gnuplot-qt
+apt install cmake
+apt install ninja-build
 ```
 
 ### Dependencies
 - CMake (minimum 3.0.0)
+- Ninja
 - Imgui 
 - Implot
 - Boost
