@@ -1,4 +1,4 @@
-#pragma once
+//#pragma once
 
 #include <iostream>
 #include <fstream>
@@ -9,13 +9,9 @@
 #include <sciplot/sciplot.hpp>
 //#include "Models.h"
 #include <cmath>
-//#include "matplotlibcpp.h"
 #include "InjectionCurrent.h"
 #include "gatingfunctions.h"
 //#include "HH_Guarin.h"
-
-//typedef boost::array< double, 4 > state_type;
-//typedef boost::array< double, 8 > state_type_params;
 
 //std::vector<double> p = { 0.01, 0.0, 1.20, 55.16, 0.36, -72.14, 0.003, -49.42 }; // constant variables
 std::vector<double> y = { -65, 0.05, 0.6, 0.32 }; // initial conditions

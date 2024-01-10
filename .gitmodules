@@ -13,6 +13,6 @@
 [submodule "libs/matplotlib-cpp"]
 	path = libs/matplotlib-cpp
 	url = https://github.com/lava/matplotlib-cpp.git
-[submodule "libs/--recursive"]
-	path = libs/--recursive
+[submodule "libs/sciplot"]
+	path = libs/sciplot
 	url = https://github.com/sciplot/sciplot

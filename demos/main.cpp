@@ -17,7 +17,7 @@ static inline T remap(T x, T x0, T x1, T y0, T y1)
     return y0 + (x - x0) * (y1 - y0) / (x1 - x0);
 }
 
-bool PLOT_MODEL = true; 
+bool PLOT_MODEL = false; 
 
 /* stores all data points for plotting */
 std::vector<std::vector<double>> y_store;
@@ -133,7 +133,9 @@ struct ImGraph : App {
         /* check if plot only still model */
         if (PLOT_MODEL) 
         {
-          /*  static float xs1[1001], ys1[1001];
+          /*  
+          * 
+          static float xs1[1001], ys1[1001];
             for (int i = 0; i < 1001; ++i) {
                 xs1[i] = i * 0.001f;
                 ys1[i] = 0.5f + 0.5f * sinf(50 * (xs1[i] + (float)ImGui::GetTime() / 10));
@@ -142,7 +144,9 @@ struct ImGraph : App {
             for (int i = 0; i < 20; ++i) {
                 xs2[i] = i * 1 / 19.0f;
                 ys2[i] = xs2[i] * xs2[i];
-            }*/
+            }
+
+            */
             int n = y_store.size();
             static double y1[150], y2[150], y3[150], y4[150];
             static double x[150];
@@ -195,46 +199,46 @@ struct ImGraph : App {
             rdata2.Span = history;
 
             static ImPlotAxisFlags flags = ImPlotAxisFlags_NoTickLabels;
-            /* Voltage */
+            ///* Voltage */
             if (ImPlot::BeginPlot("Voltage", ImVec2(-1, 150))) {
                 ImPlot::SetupAxes("time (ms) ", "V (uV)", flags, flags);
                 ImPlot::SetupAxisLimits(ImAxis_X1, t - history, t, ImGuiCond_Always);
                 ImPlot::SetupAxisLimits(ImAxis_Y1, 0, 1);
                 ImPlot::SetNextFillStyle(IMPLOT_AUTO_COL, 0.5f);
                 ImPlot::PlotShaded("Mouse X", &sdata1.Data[0].x, &sdata1.Data[0].y, sdata1.Data.size(), -INFINITY, 0, sdata1.Offset, 2 * sizeof(float));
-                ImPlot::PlotLine("Mouse Y", &sdata2.Data[0].x, &sdata2.Data[0].y, sdata2.Data.size(), 0, sdata2.Offset, 2 * sizeof(float));
+                //ImPlot::PlotLine("Mouse Y", &sdata2.Data[0].x, &sdata2.Data[0].y, sdata2.Data.size(), 0, sdata2.Offset, 2 * sizeof(float));
                 ImPlot::EndPlot();
             }
 
-            /* Current  */
-            if (ImPlot::BeginPlot("Current", ImVec2(-1, 150))) {
-                ImPlot::SetupAxes("time (ms) ", "I (uA)", flags, flags);
-                ImPlot::SetupAxisLimits(ImAxis_X1, 0, history, ImGuiCond_Always);
-                ImPlot::SetupAxisLimits(ImAxis_Y1, 0, 1);
-                ImPlot::PlotLine("Mouse X", &rdata1.Data[0].x, &rdata1.Data[0].y, rdata1.Data.size(), 0, 0, 2 * sizeof(float));
-                ImPlot::PlotLine("Mouse Y", &rdata2.Data[0].x, &rdata2.Data[0].y, rdata2.Data.size(), 0, 0, 2 * sizeof(float));
-                ImPlot::EndPlot();
-            }
+            ///* Current  */
+            //if (ImPlot::BeginPlot("Current", ImVec2(-1, 150))) {
+            //    ImPlot::SetupAxes("time (ms) ", "I (uA)", flags, flags);
+            //    ImPlot::SetupAxisLimits(ImAxis_X1, 0, history, ImGuiCond_Always);
+            //    ImPlot::SetupAxisLimits(ImAxis_Y1, 0, 1);
+            //    ImPlot::PlotLine("Mouse X", &rdata1.Data[0].x, &rdata1.Data[0].y, rdata1.Data.size(), 0, 0, 2 * sizeof(float));
+            //    ImPlot::PlotLine("Mouse Y", &rdata2.Data[0].x, &rdata2.Data[0].y, rdata2.Data.size(), 0, 0, 2 * sizeof(float));
+            //    ImPlot::EndPlot();
+            //}
 
-            /* Gating Value*/
-            if (ImPlot::BeginPlot("Gating Value", ImVec2(-1, 150))) {
-                ImPlot::SetupAxes("t (ms)", "Gating Value", flags, flags);
-                ImPlot::SetupAxisLimits(ImAxis_X1, 0, history, ImGuiCond_Always);
-                ImPlot::SetupAxisLimits(ImAxis_Y1, 0, 1);
-                ImPlot::PlotLine("Mouse X", &rdata1.Data[0].x, &rdata1.Data[0].y, rdata1.Data.size(), 0, 0, 2 * sizeof(float));
-                ImPlot::PlotLine("Mouse Y", &rdata2.Data[0].x, &rdata2.Data[0].y, rdata2.Data.size(), 0, 0, 2 * sizeof(float));
-                ImPlot::EndPlot();
-            }
+            ///* Gating Value*/
+            //if (ImPlot::BeginPlot("Gating Value", ImVec2(-1, 150))) {
+            //    ImPlot::SetupAxes("t (ms)", "Gating Value", flags, flags);
+            //    ImPlot::SetupAxisLimits(ImAxis_X1, 0, history, ImGuiCond_Always);
+            //    ImPlot::SetupAxisLimits(ImAxis_Y1, 0, 1);
+            //    ImPlot::PlotLine("Mouse X", &rdata1.Data[0].x, &rdata1.Data[0].y, rdata1.Data.size(), 0, 0, 2 * sizeof(float));
+            //    ImPlot::PlotLine("Mouse Y", &rdata2.Data[0].x, &rdata2.Data[0].y, rdata2.Data.size(), 0, 0, 2 * sizeof(float));
+            //    ImPlot::EndPlot();
+            //}
 
-            /* Injection current (I_inj) */
-            if (ImPlot::BeginPlot("##Injection current (I_inj)", ImVec2(-1, 150))) {
-                ImPlot::SetupAxes("t (ms)", "I_inj (uA/cm**2)", flags, flags);
-                ImPlot::SetupAxisLimits(ImAxis_X1, 0, history, ImGuiCond_Always);
-                ImPlot::SetupAxisLimits(ImAxis_Y1, 0, 1);
-                ImPlot::PlotLine("Mouse X", &rdata1.Data[0].x, &rdata1.Data[0].y, rdata1.Data.size(), 0, 0, 2 * sizeof(float));
-                ImPlot::PlotLine("Mouse Y", &rdata2.Data[0].x, &rdata2.Data[0].y, rdata2.Data.size(), 0, 0, 2 * sizeof(float));
-                ImPlot::EndPlot();
-            }
+            ///* Injection current (I_inj) */
+            //if (ImPlot::BeginPlot("##Injection current (I_inj)", ImVec2(-1, 150))) {
+            //    ImPlot::SetupAxes("t (ms)", "I_inj (uA/cm**2)", flags, flags);
+            //    ImPlot::SetupAxisLimits(ImAxis_X1, 0, history, ImGuiCond_Always);
+            //    ImPlot::SetupAxisLimits(ImAxis_Y1, 0, 1);
+            //    ImPlot::PlotLine("Mouse X", &rdata1.Data[0].x, &rdata1.Data[0].y, rdata1.Data.size(), 0, 0, 2 * sizeof(float));
+            //    ImPlot::PlotLine("Mouse Y", &rdata2.Data[0].x, &rdata2.Data[0].y, rdata2.Data.size(), 0, 0, 2 * sizeof(float));
+            //    ImPlot::EndPlot();
+            //}
         }
     ImGui::End();
     }
@@ -315,7 +319,6 @@ void write_model(const std::vector<double>& y, const double t)
 }
 
 
-
 void run_model() {
     /* run model only */
     double time_start = 0.0;
@@ -329,9 +332,6 @@ void run_model() {
 }
 int main(int argc, char const* argv[])
 {
-    /* 1 to plot model only (still) and 0 if you want to plot all channels (not ready) */
-    PLOT_MODEL = true; 
-
     /* run model only */
     run_model();
 
