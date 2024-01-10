@@ -21,8 +21,6 @@
 std::vector<double> y = { -65, 0.05, 0.6, 0.32 }; // initial conditions
 std::vector<double> y_model = { -68, 0.1, 0, 0 }; // will be used by the model
 
-
-
 /* safety */
 int MAX_SAMPLES = 5000;
 
@@ -31,10 +29,32 @@ std::vector<double> dxdt;
 double t; 
 int n_samples = 0;
 /* run model only */
-double time_start = 0.0;
-double time_end = 1000.0;
+
+/*=================== MAIN ====================*/
+
+/* ===== simulation setup =====*/
+double time_start = 0.0; // will not put as constants becuase eventually
+double time_end = 75.0; // will be user-defined in GUI
+const double dt = 0.1;
+
+const double time_start_injection = time_start + 15.0; // 15 ms delay
+const double time_duration_injection = 30.0;
+const double max_injection_amplitude = 10.0;
+
+/* model constants */
+std::vector<double> _t;
+double _C_m = 1.0;
+double _g_Na = 120.0;
+double _g_K = 36.0;
+double _g_L = 0.3;
+double _E_Na = 50.0;
+double _E_K = -74;
+double _E_L = -54.387;
+
+/*=============================================*/
+
+/* logging purposes*/
 double t_now = time_start;
-double dt = 0.1;
 
 std::vector<double> time_space;
 std::vector<std::vector<double>> y_store;
@@ -47,17 +67,6 @@ std::vector<double> I_L_store  = { y[3] };
 
 /* injection current */
 std::vector<double> stepCurrent;
-
-/* to do: make this a seperate file */
-
-std::vector<double> _t;
-double _C_m = 1.0;
-double _g_Na = 120.0;
-double _g_K = 36.0;
-double _g_L = 0.3;
-double _E_Na = 50.0;
-double _E_K = -74;
-double _E_L = -54.387;
 
 double I_Na(double V, double m, double h) {
 
@@ -81,15 +90,15 @@ double I_inj(double t_query) {
     // t_query: current time 
     // Find the index of the closest time point
     int index = 0;
-
+    std::vector<double> time_space_local = time_space; 
     for (int i = 0; i < time_space.size(); ++i) {
-        time_space[i] = time_space[i] - t_query;
+        time_space_local[i] = time_space_local[i] - t_query;
     }
 
     double smallest = 10000000;
     int i_smallest = -1;
     for (int i = 0; i < time_space.size(); ++i) {
-        if (time_space[i] < smallest) {
+        if (time_space_local[i] < smallest) {
             i_smallest = i;
         }
         
@@ -169,7 +178,6 @@ void write_model(const std::vector<double>& y, const double t)
     I_K_store.push_back(I_store[1]);
     I_L_store.push_back(I_store[2]);
 
-    std::cout << t_now  << ',' << I_store[0] << ',' << I_store[1] << ',' << I_store[2] << std::endl;
     /* to do: update y_model to keep y */
 }
 
@@ -242,22 +250,29 @@ void MyPlot() {
         .atOutsideBottom()
         .displayHorizontal()
         .displayExpandWidthBy(2);
+    plot.grid();
 
-    // Plot sin(i*x) from i = 1 to i = 6
-    plot.drawCurve(t_store, V_store).label("V (mV)");
-    /*plot.drawCurve(x, std::sin(2.0 * x)).label("sin(2x)");
-    plot.drawCurve(x, std::sin(3.0 * x)).label("sin(3x)");
-    plot.drawCurve(x, std::sin(4.0 * x)).label("sin(4x)");
-    plot.drawCurve(x, std::sin(5.0 * x)).label("sin(5x)");
-    plot.drawCurve(x, std::sin(6.0 * x)).label("sin(6x)");*/
+    
+    plot.drawCurve(t_store, V_store).label("V (mV)"); // voltage plot
 
-    // Create figure to hold plot
-    sciplot::Figure fig = { {plot} };
+    // vertical line 
+    std::vector<int> v_line(I_L_store.size(), 0);
+    const double vline_amp = -75; // to do: make this dynamic
+    const int idx_vline = (int)time_start_injection / dt;
+    v_line[idx_vline] = *std::max_element(V_store.begin(), V_store.end());
+    v_line[idx_vline + 1] = vline_amp; // extend vline to create filled effect
+
+
+    plot.drawCurveFilled(t_store, v_line);
+
+    sciplot::Figure fig = { {plot} }; 
     // Create canvas to hold figure
     sciplot::Canvas canvas = { {fig} };
 
     // Show the plot in a pop-up window
     canvas.show();
+
+    /* ==========================================*/
 
     /* currents */
     sciplot::Plot2D plot_currents;
@@ -268,9 +283,10 @@ void MyPlot() {
     plot_currents.ylabel("y");
 
     // Set the x and y ranges
-    plot_currents.xrange(time_start, time_end);
+    plot_currents.xrange(time_start, (int)time_end/2);
     std::min_element(I_Na_store.begin(), I_Na_store.end());
     plot_currents.yrange(-5, +5);
+    plot_currents.grid();
 
     plot_currents.legend()
         .atOutsideBottom()
@@ -282,6 +298,7 @@ void MyPlot() {
     plot_currents.drawCurve(t_store, I_L_store).label("I_L");
 
 
+
     // Create figure to hold plot
     sciplot::Figure fig_currents = { {plot_currents} };
     // Create canvas to hold figure
@@ -290,19 +307,40 @@ void MyPlot() {
     // Show the plot in a pop-up window
     canvas_currents.show();
 
+    /* ==========================================*/
+
+    /* INJECTION CURRENT  */
+    sciplot::Plot2D plot_injection;
+
+    // Set the x and y labels
+    plot_injection.xlabel("t (ms)");
+    plot_injection.ylabel("Injection current (uA?)");
+
+    // Set the x and y ranges
+    plot_injection.xrange(time_start, time_start_injection + time_duration_injection + time_start_injection); // center the plot
+    plot_injection.yrange(0.0, max_injection_amplitude);
+    plot_injection.grid();
+
+    plot_injection.legend()
+        .atOutsideBottom()
+        .displayHorizontal()
+        .displayExpandWidthBy(2);
+
+    plot_injection.drawCurve(t_store, stepCurrent).label("Step Current");
+
+    // Create figure to hold plot
+    sciplot::Figure fig_injection = { {plot_injection} };
+    // Create canvas to hold figure
+    sciplot::Canvas canvas_injection = { {fig_injection} };
+
+    // Show the plot in a pop-up window
+    canvas_injection.show();
 
 }
 
 int main(int argc, char** argv)
 {
-    std::cout << "Starting program.\n";
-    time_start = 0.0;
-    time_end = 500.0;
-    time_space = linspace(time_start, time_end, (int)time_end/dt); // 500 (ms) / 0.1 (dt, step) = 5000 samples
-    //dt = time_end / MAX_SAMPLES;
-    const double time_start_injection = time_start + 50.0;
-    const double time_duration_injection = 50.0;
-    const double max_injection_amplitude = 10.0;
+    std::cout << "Author: Felix A. Maldonado\nDate: January 9, 2024\n\n";
     
     /* 
     initial conditions 
@@ -311,8 +349,11 @@ int main(int argc, char** argv)
     * y[2] = h
     * y[3] = n
     */
+    /* set time domain */
+
+    time_space = linspace(time_start, time_end, (int)time_end / dt ); // 500 (ms) / 0.1 (dt, step) = 5000 samples
     y = { -65, 0.05, 0.6, 0.32 };
-    stepCurrent = InjectionCurrent::Step(time_space, time_start_injection, time_duration_injection, max_injection_amplitude);
+    stepCurrent = InjectionCurrent::TwoStep(time_space, time_start_injection, time_duration_injection, max_injection_amplitude);
     //boost::numeric::odeint::integrate(Model, y, time_start, time_end, dt, write_model);
     
     /* prepare initial ion concentrations with initial conditions */
@@ -321,7 +362,8 @@ int main(int argc, char** argv)
     /* solve model over time domain */
     boost::numeric::odeint::runge_kutta4<std::vector<double>> stepper;
     for (double t = time_start; t < time_end; t += dt) {
-        stepper.do_step(HH, y, t, dt);
+        //stepper.do_step(Model, y, t, dt); // guarin model - uses dynamic injection currents (doesn't work yet, what a surprise)
+        stepper.do_step(HH, y, t, dt); // basic model
         write_model(y, t);
     }
 
