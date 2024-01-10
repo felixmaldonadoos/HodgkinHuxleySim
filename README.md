@@ -15,7 +15,12 @@ Date: January 6, 2024
 apt-file search zink_dri.so
 libgl1-mesa-dri: /usr/lib/x86_64-linux-gnu/dri/zink_dri.so
 ```
-
+Error: 
+Solved by installing ```xorg-fonts-75dpi and xorg-fonts-100dpi```
+|Error|My Solution|
+|---|---|
+|Error of failed request: BadName (named color or font does not exist) <br> Major opcode of failed request: 45 (X_OpenFont) Serial number of failed request: 21 <br> Current serial number in output stream: 25| Install ```xorg-fonts-75dpi``` and ```xorg-fonts-100dpi```
+| err | expl |
 # Setup
 This is a work in progress. Currently focusing on Ubuntu 22 build in WSL2. 
 ### My system
