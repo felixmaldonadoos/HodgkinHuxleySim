@@ -19,7 +19,7 @@ This is a work in progress. Currently focusing on Ubuntu 22 build in WSL2.
 
 ``` 
 git clone --recurse-submodules git@github.com:felixmaldonadoos/HodgkinHuxleySim.git 
-sudo apt-get install libboost-all-dev gnuplot-qt cmake ninja-build xorg-dev build-essential libgtk-3-dev
+sudo apt-get install libboost-all-dev gnuplot-qt cmake ninja-build xorg-dev build-essential libgtk-3-dev libssl-dev
 ```
 
 ### Notice:
