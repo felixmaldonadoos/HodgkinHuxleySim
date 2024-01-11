@@ -13,6 +13,6 @@
 [submodule "libs/sciplot"]
 	path = libs/sciplot
 	url = https://github.com/sciplot/sciplot
-[submodule "libs/boost"]
-	path = libs/boost
-	url = git@github.com:boostorg/boost.git
+[submodule "libs/odeint"]
+	path = libs/odeint
+	url = git@github.com:boostorg/odeint.git
