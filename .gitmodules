@@ -7,9 +7,6 @@
 [submodule "libs/odeint-v2"]
 	path = libs/odeint-v2
 	url = git@github.com:headmyshoulder/odeint-v2.git
-[submodule "libs/boost"]
-	path = libs/boost
-	url = git@github.com:boostorg/boost.git
 [submodule "libs/matplotlib-cpp"]
 	path = libs/matplotlib-cpp
 	url = https://github.com/lava/matplotlib-cpp.git
