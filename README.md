@@ -18,7 +18,7 @@ This is a work in progress. Currently focusing on Ubuntu 22 build in WSL2.
 - Clone this repo recursively to include all submodules.
 
 ``` 
-git clone --recurse-submodules https://github.com/felixmaldonadoos/HodgkinHuxleySim.git 
+git clone --recurse-submodules git@github.com:felixmaldonadoos/HodgkinHuxleySim.git 
 sudo apt-get install libboost-all-dev
 apt install gnuplot-qt
 apt install cmake
