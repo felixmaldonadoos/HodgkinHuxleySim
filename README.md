@@ -16,12 +16,27 @@ This is a work in progress. Currently focusing on Ubuntu 22 build in WSL2.
 ```Linux username 5.15.133.1-microsoft-standard-WSL2 #1 SMP Thu Oct 5 21:02:42 UTC 2023 x86_64 x86_64 x86_64 GNU/Linux```
 
 ### Installation:
-- Clone this repo recursively to include all submodules.
+1. Clone this repo recursively to include all submodules.
 
 ``` 
-git clone --recurse-submodules git@github.com:felixmaldonadoos/HodgkinHuxleySim.git 
+git clone --recurse-submodules git@github.com:felixmaldonadoos/HodgkinHuxleySim.git
+```
+2. Install all packages with one of the following:
+#### Method A: Installs all packages I have while developing (not the best but recommended for now)
+
+This Installs all packages I have while developing (not the best but recommended for now). I installed a fresh WSL2 subsystem on my PC, ran the 
+```sudo apt-get install etc etc``` line below and all the resulting packages are found in ```installed-packages-with-versions.txt```
+
+```
+xargs -a installed-packages-with-versions.txt sudo apt-get install -y
+```
+
+#### Method B: Install all packages I added directly one by one.
+
+```
 sudo apt-get install libboost-all-dev gnuplot-qt cmake ninja-build xorg-dev build-essential libgtk-3-dev libssl-dev
 ```
+
 
 ### Notice:
 |Error|My Solution|
