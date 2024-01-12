@@ -64,6 +64,7 @@ These packages have been removed from ```installed-packages-with-versions.txt```
 sudo apt-get install gdb libboost-all-dev gnuplot-qt cmake ninja-build xorg-dev build-essential libgtk-3-dev libssl-dev
 ```
 
+**Note:** WIP, most packages are taken care of by **Method A** but some are not, such as the following: 
 
 ### Notice:
 |Error|My Solution|
@@ -74,8 +75,9 @@ sudo apt-get install gdb libboost-all-dev gnuplot-qt cmake ninja-build xorg-dev 
 |Checking for module 'gtk+-3.0' 1> [CMake] -- No package 'gtk+-3.0' found |```apt-get install build-essential libgtk-3-dev```|
 |gdp not found|```sudo apt-get install build-essential gdb```|
 |You may get a weird zink driver issue (I believe with QT dependency for matplotlib). | ```apt-file search zink_dri.so libgl1-mesa-dri: /usr/lib/x86_64-linux-gnu/dri/zink_dri.so```|
-|WSL2 error: /sbin/ldconfig.real: /usr/lib/wsl/lib/libcuda.so.1 is not a symbolic link|```sudo ln -s /usr/lib/wsl/lib/libcuda.so.1 /usr/local/cuda/lib64/libcuda.so```|
-
+|WSL2 error: /sbin/ldconfig.real: /usr/lib/wsl/lib/libcuda.so.1 is not a symbolic link|```sudo ln -s /usr/lib/wsl/lib/libcuda.so.1 /usr/local/cuda/lib64/libcuda.so``` -> error below|
+|ln: failed to create symbolic link '/usr/local/cuda/lib64/libcuda.so': No such file or directory|  ```ln -s libcuda.so.1.1 libcuda.so.1``` and ```ln -s libcuda.so.1.1 libcuda.so```|
+|Error: could not load cache | had a libcuda.so issue in my working directory|
 
 ### Dependencies
 - CMake (minimum 3.0.0)

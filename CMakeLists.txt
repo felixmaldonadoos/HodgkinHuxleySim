@@ -80,6 +80,7 @@ set(IMGUI_SRC
 )
 
 find_package(OpenGL REQUIRED)
+set(OpenGL_GL_PREFERENCE GLVND)
 
 add_library(imgui ${IMGUI_HEADERS} ${IMGUI_SRC})
 if(MSVC)
@@ -196,7 +197,6 @@ target_link_libraries(HH ${Boost_LIBRARIES} imgui)
 target_compile_features(HH PRIVATE cxx_std_17)
 
 # ===== main demo ====
-
 add_executable(HodkingHuxleySim 
     "demos/main.cpp" 
     "common/Plot.cpp" 

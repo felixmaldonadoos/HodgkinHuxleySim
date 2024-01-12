@@ -27,7 +27,6 @@ bzip2=1.0.8-5build1
 ca-certificates=20230311ubuntu0.22.04.1
 cmake=3.22.1-1ubuntu1.22.04.1
 cmake-data=3.22.1-1ubuntu1.22.04.1
-code=1.84.0-1698839401
 command-not-found=22.04.0
 console-setup=1.205ubuntu3
 console-setup-linux=1.205ubuntu3
