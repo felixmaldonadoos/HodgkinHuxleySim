@@ -22,7 +22,7 @@
 bool bPlotModel = false;
 /* ===== simulation setup =====*/
 double time_start = 0.0; // will not put as constants becuase eventually
-double time_end = 30.0; // will be user-defined in GUI
+double time_end = 150.0; // will be user-defined in GUI
 double dt = 0.1; //  will be user-defined in GUI
 double h_step = 0.1;
 std::vector<double> y = { -65, 0.05, 0.6, 0.32 }; // initial conditions V,m, h, n
@@ -39,7 +39,7 @@ static float history = 10.0f;
 /*=================== MAIN ====================*/
 
 const double time_start_injection = time_start + 10.0; // 15 ms delay
-const double time_duration_injection = 10.0;
+const double time_duration_injection = 100.0;
 const double max_injection_amplitude = 10.0;
 
 /* model constants */
@@ -252,7 +252,7 @@ struct ScrollingBuffer2 {
     int Offset;
     ImVector<ImVec2> Data;
 
-    ScrollingBuffer2(int max_size = n_samples*2) {
+    ScrollingBuffer2(int max_size = n_samples) {
         MaxSize = max_size;
         Offset = 0;
         Data.reserve(MaxSize);
@@ -367,7 +367,7 @@ struct ImGraph : App {
         ImGui::BulletText("Move your mouse to change the data!");
         ImGui::BulletText("This example assumes 60 FPS. Higher FPS requires larger buffer size.");
 
-        if (n_samples_now <= n_samples*2) {
+        if (n_samples_now < n_samples) {
             ModelDoStep(); // does n_samples_now += 1; 
             ModelWrite();
         }
@@ -392,11 +392,12 @@ struct ImGraph : App {
         static ScrollingBuffer2 sdata1;
         ImVec2 mouse = ImGui::GetMousePos();
         static float t = 0;
+        //t += ImGui::GetIO().DeltaTime;
         t += ImGui::GetIO().DeltaTime;
         sdata1.AddPoint(t, (float)y[0]);
 
-        static float history = 5.0f;
-        ImGui::SliderFloat("History", &history, 1, 30, "%.1f s");
+        static float history = (int)time_end/100 + 5; // ms / 1000 = s
+        ImGui::SliderFloat("History", &history, 1, 100, "%.1f s");
         const float span = history;
         static ImPlotAxisFlags flags;
 
