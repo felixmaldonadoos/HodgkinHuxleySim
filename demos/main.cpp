@@ -149,7 +149,6 @@ std::vector<double> linspace(double start, double end, int num) {
 void ModelWrite(/*const std::vector<double>& y, const double t*/)
 {
     I_store = { I_Na(y[0], y[1], y[2]), I_K(y[0], y[3]), I_L(y[0]) };
-    t_now = t_now + dt;
     t_store.push_back(t_now);
     V_store.push_back(y[0]);
     y_store.push_back(y);
@@ -253,7 +252,7 @@ struct ScrollingBuffer2 {
     int Offset;
     ImVector<ImVec2> Data;
 
-    ScrollingBuffer2(int max_size = n_samples) {
+    ScrollingBuffer2(int max_size = n_samples*2) {
         MaxSize = max_size;
         Offset = 0;
         Data.reserve(MaxSize);
@@ -393,7 +392,7 @@ struct ImGraph : App {
         ImGui::BulletText("Move your mouse to change the data!");
         ImGui::BulletText("This example assumes 60 FPS. Higher FPS requires larger buffer size.");
 
-        if (n_samples_now <= n_samples) {
+        if (n_samples_now <= n_samples*2) {
             ModelDoStep(); // does n_samples_now += 1; 
             ModelWrite();
         }
@@ -421,31 +420,16 @@ struct ImGraph : App {
         t += ImGui::GetIO().DeltaTime;
         sdata1.AddPoint(t, (float)y[0]);
 
-        static float history = 10.0f;
+        static float history = 5.0f;
         ImGui::SliderFloat("History", &history, 1, 30, "%.1f s");
         const float span = history;
         static ImPlotAxisFlags flags;
 
         /* end demo */
- 
-        /* STEP HERE */
-                                                      
-        //if (ImPlot::BeginPlot("##Scrolling", ImVec2(-1, 150))) {
-        //    ImPlot::SetupAxes(nullptr, nullptr, flags, flags); // to do: add time/Volt in label
-        //    ImPlot::SetupAxisLimits(ImAxis_X1, t - history, t, ImGuiCond_Always);
-        //    ImPlot::SetupAxisLimits(ImAxis_Y1, -100.0f, -30.0f );
-        //    ImPlot::SetNextFillStyle(IMPLOT_AUTO_COL, 0.5f);
-        //    //ImPlot::PlotLine("Mouse Y", &sdata2.Data[0].x, &sdata2.Data[0].y, sdata2.Data.size(), 0, sdata2.Offset, 2 * sizeof(float));
-        //    ImPlot::PlotLine("Mouse Y", &V.Data[0].x, &V.Data[0].y, V.Data.size(), 0, V.Offset, 2 * sizeof(float));
-        //    //ImPlot::PlotLine("Mouse Y", &t, (double)0.5, sdata2.Data.size(), 0, sdata2.Offset, 2 * sizeof(float));
-        //   
-        //    ImPlot::EndPlot();
-        //}
-
         if (ImPlot::BeginPlot("##Scrolling", ImVec2(-1, 150))) {
             ImPlot::SetupAxes(nullptr, nullptr, flags, flags);
             ImPlot::SetupAxisLimits(ImAxis_X1, t - history, t, ImGuiCond_Always);
-            ImPlot::SetupAxisLimits(ImAxis_Y1, -85.0, -50.0);
+            ImPlot::SetupAxisLimits(ImAxis_Y1, -80.0, -60.0);
             ImPlot::SetNextFillStyle(IMPLOT_AUTO_COL, 0.5f);
             ImPlot::PlotLine("Mouse X", &sdata1.Data[0].x, &sdata1.Data[0].y, sdata1.Data.size(), 0, sdata1.Offset, 2 * sizeof(float));
             ImPlot::EndPlot();
