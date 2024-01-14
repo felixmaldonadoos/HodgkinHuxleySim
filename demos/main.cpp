@@ -22,7 +22,7 @@
 bool bPlotModel = false;
 /* ===== simulation setup =====*/
 double time_start = 0.0; // will not put as constants becuase eventually
-double time_end = 50.0; // will be user-defined in GUI
+double time_end = 30.0; // will be user-defined in GUI
 double dt = 0.1; //  will be user-defined in GUI
 double h_step = 0.1;
 std::vector<double> y = { -65, 0.05, 0.6, 0.32 }; // initial conditions V,m, h, n
@@ -39,7 +39,7 @@ static float history = 10.0f;
 /*=================== MAIN ====================*/
 
 const double time_start_injection = time_start + 10.0; // 15 ms delay
-const double time_duration_injection = 30.0;
+const double time_duration_injection = 10.0;
 const double max_injection_amplitude = 10.0;
 
 /* model constants */
@@ -290,31 +290,6 @@ struct RollingBuffer_v1 {
         Data.push_back(ImVec2(xmod, y));
     }
 };
-
-//struct ScrollingBuffer {
-//    int MaxSize;
-//    int Offset;
-//    ImVector<ImVec1> Data;
-//    ScrollingBuffer(int max_size = n_samples) {
-//        MaxSize = max_size;
-//        Offset = 0;
-//        Data.reserve(MaxSize);
-//    }
-//    void AddPoint(double x) {
-//        if (Data.size() < MaxSize)
-//            Data.push_back(x);
-//        else {
-//            Data[Offset] = x;
-//            Offset = (Offset + 1) % MaxSize;
-//        }
-//    }
-//    void Erase() {
-//        if (Data.size() > 0) {
-//            Data.shrink(0);
-//            Offset = 0;
-//        }
-//    }
-//};
 
 struct ScrollingBuffer {
     int MaxSize;
