@@ -198,6 +198,10 @@ target_compile_features(HH PRIVATE cxx_std_17)
 
 # ===== main demo ====
 add_executable(HodkingHuxleySim 
+${CMAKE_CURRENT_SOURCE_DIR}/helpers/gatingfunctions.h 
+    ${CMAKE_CURRENT_SOURCE_DIR}/helpers/gatingfunctions.cpp
+    ${CMAKE_CURRENT_SOURCE_DIR}/helpers/InjectionCurrent.cpp
+    ${CMAKE_CURRENT_SOURCE_DIR}/helpers/InjectionCurrent.h
     "demos/main.cpp" 
     "common/Plot.cpp" 
     "common/Plot.h" 

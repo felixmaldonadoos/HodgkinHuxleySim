@@ -11,6 +11,7 @@
 #include <cmath>
 #include "InjectionCurrent.h"
 #include "gatingfunctions.h"
+#include "Models.h"
 //#include "HH_Guarin.h"
 
 //std::vector<double> p = { 0.01, 0.0, 1.20, 55.16, 0.36, -72.14, 0.003, -49.42 }; // constant variables
@@ -30,7 +31,7 @@ int n_samples = 0;
 
 /* ===== simulation setup =====*/
 double time_start = 0.0; // will not put as constants becuase eventually
-double time_end = 75.0; // will be user-defined in GUI
+double time_end = 50; // will be user-defined in GUI
 const double dt = 0.1;
 
 const double time_start_injection = time_start + 15.0; // 15 ms delay
@@ -349,9 +350,11 @@ int main(int argc, char** argv)
 
     time_space = linspace(time_start, time_end, (int)time_end / dt ); // 500 (ms) / 0.1 (dt, step) = 5000 samples
     y = { -65, 0.05, 0.6, 0.32 };
-    stepCurrent = InjectionCurrent::TwoStep(time_space, time_start_injection, time_duration_injection, max_injection_amplitude);
+    stepCurrent = InjectionCurrent::Step(time_space, time_start_injection, time_duration_injection, max_injection_amplitude);
     //boost::numeric::odeint::integrate(Model, y, time_start, time_end, dt, write_model);
     
+    /* setup class */
+
     /* prepare initial ion concentrations with initial conditions */
     I_store = { I_Na(y[0], y[1], y[2]), I_K(y[0], y[3]), I_L(y[0]) };
 

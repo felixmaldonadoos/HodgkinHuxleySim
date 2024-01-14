@@ -1,7 +1,3 @@
-//#include <iostream>
-//#include <exprtk.hpp>
-//#include "imgui.h"
-//#include <boost/numeric/odeint.hpp>
 #include "gatingfunctions.h"
 
 struct Expression {
