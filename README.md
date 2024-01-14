@@ -6,9 +6,6 @@ Date: January 6, 2024
 ### To do: 
 - [PRIORITY] Unusual and non-reproducible rendering issue when i run on my personal pc wsl2 ubuntu 22.04.
 - check action potential model. AP is not reaching baseline. 
-- voltage seems off. need to recheck equations and what the injection current looks like. maybe indexing is off.
-- rendering issues. have seen some bugs online regarding zink and nvidia drivers. 
-- uninstalling ```gnuplot-qt``` does not fix rendering issues.
 
 # Setup
 This is a work in progress. Currently focusing on Ubuntu 22 build in WSL2. 
