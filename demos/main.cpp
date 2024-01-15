@@ -20,10 +20,15 @@
 bool bPlotModel = false;
 /* ===== simulation setup =====*/
 double time_start = 0.0; // will not put as constants becuase eventually
-double time_end = 30.0; // will be user-defined in GUI
+double time_end = 100.0; // will be user-defined in GUI
 double dt = 0.1; //  will be user-defined in GUI
 double h_step = 0.1;
-std::vector<double> y = { -65, 1.0, 0.6, 0.32 }; // initial conditions V,m, h, n
+//std::vector<double> y_init = { -61, 1.0, 0.6, 0.32 }; // initial conditions V,m, h, n (original)
+std::vector<double> y_init = { -61, 0.0, 0.6, 0.32 }; // initial conditions V,m, h, n
+std::vector<double> y = y_init; // initial conditions V,m, h, n
+std::vector<double> p = { 0.01, 0.0, 1.20, 55.16, 0.36, -72.14, 0.003, -49.42 }; // constant variables
+bool bApplyStim = false;
+bool bApplyStim_10 = false;
 
 
 /* used to bind function to odeint*/
@@ -258,11 +263,11 @@ void Model(const std::vector<double>& y, std::vector<double>& dxdt, double t)
     * y[3] = n
     */
     //I_store = { I_Na(y[0], y[1], y[2]), I_K(y[0], y[3]), I_L(y[0]) }; 
-    if (I_inj(t) > 0.0) {
-        std::cout << "Stimulus applies: " << t << "time / " << I_inj(t) << " uA\n";
-    }
+    //if (I_inj(t) > 0.0) {
+    //    std::cout << "Stimulus applies: " << t << "time / " << I_inj(t) << " uA\n";
+    //}
 
-    std::vector<double> p = { 0.01, 0.0, 1.20, 55.16, 0.36, -72.14, 0.003, -49.42 }; // constant variables
+
 
     dxdt[0] = (1 / p[0]) * (p[1] - p[2] * std::pow(y[1], 3) * y[2] * (y[0] - p[3]) - p[4] * std::pow(y[3], 4) * (y[0] - p[5]) - p[6] * (y[0] - p[7]));
     //dxdt[0] = ((I_inj(t)) - I_store[0] - I_store[1] - I_store[3]) / C_m;
@@ -278,7 +283,8 @@ void ModelReset() {
     * 
     */
     std::cout << "{ModelReset()] Startting.\n";
-    y = { -65, 0.05, 0.6, 0.32 }; // initial conditions
+    y = y_init; // initial conditions
+    std::vector<double> p = { 0.01, 0.0, 1.20, 55.16, 0.36, -72.14, 0.003, -49.42 }; // constant variables
     double t_now = time_start;
     n_samples_now = 0;
     time_space = linspace(time_start, time_end, n_samples);
@@ -418,7 +424,7 @@ void ModelInit() {
     n_samples = (int)time_end / dt; // 500 (ms) / 0.1 (dt, step) = 5000 samples
     time_space = linspace(time_start, time_end, n_samples); 
 
-    y = { -65, 0.05, 0.6, 0.32 }; // initial conditions
+    y = y_init; // initial conditions
     stepCurrent = InjectionCurrent::Step(time_space, time_start_injection, time_duration_injection, max_injection_amplitude);
 
     /* prepare initial ion concentrations with initial conditions */
@@ -428,7 +434,19 @@ void ModelInit() {
     
 }
 
+int n_stims = 0; 
 void ModelDoStep() {
+
+    if (bApplyStim && n_stims < 10) { 
+        p[2] = 10.0; 
+        n_stims += 1; 
+    }
+    else { 
+        p[2] = 0.0; 
+        n_stims = 0;
+        bApplyStim = false; 
+    }
+
     stepper.do_step(Model, y, t, dt); // basic model
     n_samples_now += 1; 
     t_now += dt; 
@@ -469,23 +487,7 @@ struct ImGraph : App {
         expr.color = ImVec4(1, 0.75f, 0, 1);
         bIsThreadRunning = false;
         ModelInit();
-
     }
-
-    //void HandleModelThread() {
-    //    if (!bIsThreadRunning) {
-    //        std::cout << "Starting SolveModel thread.\n";
-    //        bIsThreadRunning = true;
-
-    //        /* create */
-    //        std::thread t(SolveModel2);
-
-    //        /* wait for thread to finish */
-    //        t.join();
-    //        std::cout << "Ending SolveModel thread.\n";
-    //        bIsThreadRunning = false;
-    //    }
-    //}
 
     void InitializePlot() {
         ImGui::SetNextWindowSize(GetWindowSize());
@@ -507,21 +509,40 @@ struct ImGraph : App {
         ImGui::BulletText("Move your mouse to change the data!");
         ImGui::BulletText("This example assumes 60 FPS. Higher FPS requires larger buffer size.");
 
+        if (ImGui::Button("Apply stim: 5.0"))
+        {
+            bApplyStim = true;
+            std::cout << "Stim applied!\n";
+        }
+
+        if (ImGui::Button("Apply stim: 10.0"))
+        {
+            bApplyStim = true;
+            bApplyStim_10 = true;
+            std::cout << "Stim applied!\n";
+        }
+
         if (n_samples_now < n_samples) {
             ModelDoStep(); // does n_samples_now += 1; 
             ModelWrite();
         }
         else { ModelReset(); }
         
+     
+
         static ScrollingBuffer2 V_buff, m_buff, h_buff, n_buff;
         static ScrollingBuffer2 step_current_buff; 
 
         static float t = 0;
-        t += ImGui::GetIO().DeltaTime;
+        //t += ImGui::GetIO().DeltaTime;
+        t += dt;
 
         /* add points */
         V_buff.AddPoint(t, (float)y[0]);
-        step_current_buff.AddPoint(t, (float)stepCurrent[n_samples_now]);
+        m_buff.AddPoint(t, (float)y[1]);
+        h_buff.AddPoint(t, (float)y[2]);
+        n_buff.AddPoint(t, (float)y[3]);
+        step_current_buff.AddPoint(t, (float)p[2]/10);
 
         /* control history with a slider*/
         static float history = (int)time_end/100 + 5;
@@ -542,19 +563,46 @@ struct ImGraph : App {
             ImPlot::SetupAxisLimits(ImAxis_X1, t - history, t, ImGuiCond_Always);
 
             ImPlot::SetupAxis(ImAxis_Y1, "Y1", ImPlotAxisFlags_AuxDefault);
-            ImPlot::SetupAxisLimits(ImAxis_Y1, -80.0, -60.0);
+            ImPlot::SetupAxisLimits(ImAxis_Y1, -70.0, 50.0);
 
             ImPlot::SetupAxis(ImAxis_Y2, "Y2", ImPlotAxisFlags_AuxDefault);
-            ImPlot::SetupAxisLimits(ImAxis_Y2, 0, max_injection_amplitude*2);
+            ImPlot::SetupAxisLimits(ImAxis_Y2, 0, 10.0);
 
-            ImPlot::SetAxes(ImAxis_X1, ImAxis_Y1);
-            ImPlot::PlotLine("Mouse X", &V_buff.Data[0].x, &V_buff.Data[0].y, V_buff.Data.size(), 0, V_buff.Offset, 2 * sizeof(float));
-            
             ImPlot::SetNextFillStyle(IMPLOT_AUTO_COL, 0.5f);
+            ImPlot::SetAxes(ImAxis_X1, ImAxis_Y1);
+            ImPlot::PlotLine("Voltage", &V_buff.Data[0].x, &V_buff.Data[0].y, V_buff.Data.size(), 0, V_buff.Offset, 2 * sizeof(float));
+            
 
+            ImPlot::SetNextFillStyle(IMPLOT_AUTO_COL, 0.5f);
             ImPlot::SetAxes(ImAxis_X1, ImAxis_Y2);
-            ImPlot::PlotLine("Mouse X", &step_current_buff.Data[0].x, &step_current_buff.Data[0].y, step_current_buff.Data.size(), 0, step_current_buff.Offset, 2 * sizeof(float));
+            ImPlot::PlotLine("Injection Current (*10)", &step_current_buff.Data[0].x, &step_current_buff.Data[0].y, step_current_buff.Data.size(), 0, step_current_buff.Offset, 2 * sizeof(float));
            
+            ImPlot::EndPlot();
+        }
+
+        if (ImPlot::BeginPlot("##Scrolling 2", ImVec2(-1, 350))) {
+
+            ImPlot::SetupAxis(ImAxis_X2, "X2", ImPlotAxisFlags_AuxDefault);
+            ImPlot::SetupAxisLimits(ImAxis_X2, t - history, t, ImGuiCond_Always);
+
+            ImPlot::SetupAxis(ImAxis_Y3, "Y3", ImPlotAxisFlags_AuxDefault);
+            ImPlot::SetupAxisLimits(ImAxis_Y3, 0, 1);
+
+            /* plot m */
+            ImPlot::SetNextFillStyle(IMPLOT_AUTO_COL, 0.5f);
+            ImPlot::SetAxes(ImAxis_X2, ImAxis_Y3);
+            ImPlot::PlotLine("m", &m_buff.Data[0].x, &m_buff.Data[0].y, m_buff.Data.size(), 0, m_buff.Offset, 2 * sizeof(float));
+            
+            /* plot h */
+            ImPlot::SetNextFillStyle(IMPLOT_AUTO_COL, 0.5f);
+            ImPlot::SetAxes(ImAxis_X2, ImAxis_Y3);
+            ImPlot::PlotLine("h", &h_buff.Data[0].x, &h_buff.Data[0].y, h_buff.Data.size(), 0, h_buff.Offset, 2 * sizeof(float));
+            
+            /* plot n */
+            ImPlot::SetNextFillStyle(IMPLOT_AUTO_COL, 0.5f);
+            ImPlot::SetAxes(ImAxis_X2, ImAxis_Y3);
+            ImPlot::PlotLine("n", &n_buff.Data[0].x, &n_buff.Data[0].y, n_buff.Data.size(), 0, n_buff.Offset, 2 * sizeof(float));
+
             ImPlot::EndPlot();
         }
     }
