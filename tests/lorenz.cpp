@@ -1,5 +1,6 @@
 #include <iostream>
 #include <boost/array.hpp>
+#include <thread>
 #include <boost/numeric/odeint.hpp>
 
 const double sigma = 10.0;
@@ -20,8 +21,14 @@ void write_lorenz(const state_type& x, const double t)
     std::cout << t << '\t' << x[0] << '\t' << x[1] << '\t' << x[2] << std::endl;
 }
 
-int main(int argc, char** argv)
-{
+void solve() {
     state_type x = { 10.0 , 1.0 , 1.0 }; // initial conditions
     boost::numeric::odeint::integrate(lorenz, x, 0.0, 25.0, 0.1, write_lorenz);
+}
+
+int main(int argc, char** argv)
+{
+    std::thread t(solve);
+    t.join();
+    std::cout << "\nEnded thread.\n";
 }

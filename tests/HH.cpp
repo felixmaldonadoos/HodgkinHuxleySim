@@ -3,6 +3,7 @@
 #include <iostream>
 #include <fstream>
 #include <vector>
+#include <thread>
 //#include <boost/array.hpp>
 #include <boost/numeric/odeint.hpp>
 #include <boost/numeric/odeint/stepper/runge_kutta4.hpp>
@@ -15,8 +16,10 @@
 //#include "HH_Guarin.h"
 
 //std::vector<double> p = { 0.01, 0.0, 1.20, 55.16, 0.36, -72.14, 0.003, -49.42 }; // constant variables
-std::vector<double> y = { -65, 0.05, 0.6, 0.32 }; // initial conditions
+std::vector<double> y = { -60, 100.0, 0.0, 0.0 }; // initial conditions
+//std::vector<double> y = { -65, 0.05, 0.6, 0.32 }; // initial conditions
 std::vector<double> y_model = { -68, 0.1, 0, 0 }; // will be used by the model
+
 
 /* safety */
 int MAX_SAMPLES = 5000;
@@ -31,7 +34,7 @@ int n_samples = 0;
 
 /* ===== simulation setup =====*/
 double time_start = 0.0; // will not put as constants becuase eventually
-double time_end = 50; // will be user-defined in GUI
+double time_end = 9.0; // will be user-defined in GUI
 const double dt = 0.1;
 
 const double time_start_injection = time_start + 15.0; // 15 ms delay
@@ -64,6 +67,9 @@ std::vector<double> I_L_store  = { y[3] };
 
 /* injection current */
 std::vector<double> stepCurrent;
+
+/* thread*/
+bool bIsThreadRunning = false;
 
 double I_Na(double V, double m, double h) {
 
@@ -149,10 +155,10 @@ void HH(const std::vector<double>& y, std::vector<double>& dxdt, double t){
 //    dxdt[2] = alpha_h(y[0]) * (1 - y[2]) - beta_h(y[0]) * y[2];
 //    dxdt[3] = alpha_n(y[0]) * (1 - y[3]) - beta_n(y[0]) * y[3];
 
-    //std::vector<double> p = { 0.01, 0.0, 1.20, 55.16, 0.36, -72.14, 0.003, -49.42 }; // constant variables
+    std::vector<double> p = { 0.01, 100.0, 1.20, 55.16, 0.36, -72.14, 0.003, -49.42 }; // constant variables
 
-    //dxdt[0] = (1 / p[0]) * (p[1] - p[2] * pow(y[1], 3) * y[2] * (y[0] - p[3]) - p[4] * pow(y[3], 4) * (y[0] - p[5]) - p[6] * (y[0] - p[7]));
-    dxdt[0] = (I_inj(t)) - I_Na(y[0], y[1], y[2]) - I_K(y[0], y[3]) - I_L(y[0]) / _C_m;
+    dxdt[0] = (1 / p[0]) * (p[1] - p[2] * std::pow(y[1], 3) * y[2] * (y[0] - p[3]) - p[4] * std::pow(y[3], 4) * (y[0] - p[5]) - p[6] * (y[0] - p[7]));
+    //dxdt[0] = (I_inj(t)) - I_Na(y[0], y[1], y[2]) - I_K(y[0], y[3]) - I_L(y[0]) / _C_m;
     dxdt[1] = GatingFunctions::alpha_m(y[0]) * (1 - y[1]) - GatingFunctions::beta_m(y[0]) * y[1];
     dxdt[2] = GatingFunctions::alpha_h(y[0]) * (1 - y[2]) - GatingFunctions::beta_h(y[0]) * y[2];
     dxdt[3] = GatingFunctions::alpha_n(y[0]) * (1 - y[3]) - GatingFunctions::beta_n(y[0]) * y[3];
@@ -167,7 +173,8 @@ void write_model(const std::vector<double>& y, const double t)
     //    exit(1); 
     //}
     t_now = t_now + dt; 
-    t_store.push_back(t_now);
+    t_store.push_back(t);
+    //t_store.push_back(t_now); // og
     V_store.push_back(y[0]);
     y_store.push_back(y);
 
@@ -221,6 +228,31 @@ std::vector<double> linspace(double start, double end, int num) {
     linspaced.push_back(end); // Ensure that end is exactly at 'end'
 
     return linspaced;
+}
+
+
+void SolveModel2() {
+    double dt = 0.1;
+    n_samples = (int)(time_end / dt);
+    size_t steps = boost::numeric::odeint::integrate(HH, y, time_start, time_end, dt, write_model);
+}
+
+void HandleModelThread() {
+    if (!bIsThreadRunning) {
+        std::cout << "Starting SolveModel thread.\n";
+        bIsThreadRunning = true;
+
+        /* create */
+        std::thread t(SolveModel2);
+
+        /* wait for thread to finish */
+        t.join();
+        std::cout << "Ending SolveModel thread.\n";
+        bIsThreadRunning = false;
+    }
+    else {
+        std::cout << "SolveModel thread already running.\n";
+    }
 }
 
 void MyPlot() {
@@ -335,6 +367,52 @@ void MyPlot() {
 
 }
 
+void PlotModel2(){
+
+    // Create a Plot object
+    sciplot::Plot2D plot;
+    std::cout << "size timespace: " << time_space.size() << "\nsize V_store: " << V_store.size() << "\nsize t_store: " << t_store.size() << std::endl;
+    std::cout << "size I_Na: " << I_Na_store.size() << "\nsize I_K: " << I_K_store.size() << "\nsize I_L_store: " << I_L_store.size() << std::endl;
+
+    // Set the x and y labels
+    plot.xlabel("x");
+    plot.ylabel("y");
+
+    // Set the x and y ranges
+    plot.xrange(time_start, time_end);
+    std::min_element(V_store.begin(), V_store.end());
+    plot.yrange(*std::min_element(V_store.begin(), V_store.end()),
+        *std::max_element(V_store.begin(), V_store.end()));
+
+    // Set the legend to be on the bottom along the horizontal
+    plot.legend()
+        .atOutsideBottom()
+        .displayHorizontal()
+        .displayExpandWidthBy(2);
+    plot.grid();
+
+
+    plot.drawCurve(t_store, V_store).label("V (mV)"); // voltage plot
+
+    // vertical line 
+    std::vector<int> v_line(I_L_store.size(), 0);
+    const double vline_amp = -75; // to do: make this dynamic
+    const int idx_vline = (int)time_start_injection / dt;
+    v_line[idx_vline] = *std::max_element(V_store.begin(), V_store.end());
+    v_line[idx_vline + 1] = vline_amp; // extend vline to create filled effect
+
+
+    plot.drawCurveFilled(t_store, v_line);
+
+    sciplot::Figure fig = { {plot} };
+    // Create canvas to hold figure
+    sciplot::Canvas canvas = { {fig} };
+
+    // Show the plot in a pop-up window
+    canvas.show();
+
+}
+
 int main(int argc, char** argv)
 {
     std::cout << "Author: Felix A. Maldonado\nDate: January 9, 2024\n\n";
@@ -358,16 +436,22 @@ int main(int argc, char** argv)
     /* prepare initial ion concentrations with initial conditions */
     I_store = { I_Na(y[0], y[1], y[2]), I_K(y[0], y[3]), I_L(y[0]) };
 
-    /* solve model over time domain */
-    boost::numeric::odeint::runge_kutta4<std::vector<double>> stepper;
-    for (double t = time_start; t < time_end; t += dt) {
-        //stepper.do_step(Model, y, t, dt); // guarin model - uses dynamic injection currents (doesn't work yet, what a surprise)
-        stepper.do_step(HH, y, t, dt); // basic model
-        write_model(y, t);
+    HandleModelThread();
+    if (!bIsThreadRunning) {
+        PlotModel2();
     }
+    /* solve model over time domain */
+    //boost::numeric::odeint::runge_kutta4<std::vector<double>> stepper;
+    //for (double t = time_start; t < time_end; t += dt) {
+    //    //stepper.do_step(Model, y, t, dt); // guarin model - uses dynamic injection currents (doesn't work yet, what a surprise)
+    //    stepper.do_step(HH, y, t, dt); // basic model
+    //    write_model(y, t);
+    //}
+
+
 
     /* basic plot */
-    MyPlot();    
+    //MyPlot();    
     
     return 0;
 }

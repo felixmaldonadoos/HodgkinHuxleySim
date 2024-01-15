@@ -5,9 +5,6 @@
 #include "App.h"
 #include <exprtk.hpp>
 #include <iostream>
-//#include <functional>
-//#include <chrono>
-//#include <thread>
 #include <imgui_stdlib.h>
 #include <sciplot/sciplot.hpp>
 #include "gatingfunctions.h"
@@ -15,6 +12,7 @@
 #include <boost/numeric/odeint.hpp>
 #include <boost/numeric/odeint/stepper/runge_kutta4.hpp>
 #include <boost/array.hpp>
+#include <thread>
 #include <boost/numeric/odeint.hpp>
 #include "Models.h"
 
@@ -22,10 +20,10 @@
 bool bPlotModel = false;
 /* ===== simulation setup =====*/
 double time_start = 0.0; // will not put as constants becuase eventually
-double time_end = 150.0; // will be user-defined in GUI
+double time_end = 30.0; // will be user-defined in GUI
 double dt = 0.1; //  will be user-defined in GUI
 double h_step = 0.1;
-std::vector<double> y = { -65, 0.05, 0.6, 0.32 }; // initial conditions V,m, h, n
+std::vector<double> y = { -65, 1.0, 0.6, 0.32 }; // initial conditions V,m, h, n
 
 
 /* used to bind function to odeint*/
@@ -39,7 +37,7 @@ static float history = 10.0f;
 /*=================== MAIN ====================*/
 
 const double time_start_injection = time_start + 10.0; // 15 ms delay
-const double time_duration_injection = 100.0;
+const double time_duration_injection = 5.0;
 const double max_injection_amplitude = 10.0;
 
 /* model constants */
@@ -69,156 +67,12 @@ std::vector<double> I_L_store = { y[3] };
 
 /* control flow of model */
 bool bModelDone = true; 
-
+bool bIsThreadRunning = false;
 /* injection current */
 std::vector<double> stepCurrent;
+
 /* solve model over time domain */
 boost::numeric::odeint::runge_kutta4<std::vector<double>> stepper;
-
-//template <typename T>
-//static inline T remap(T x, T x0, T x1, T y0, T y1)
-//{
-//    return y0 + (x - x0) * (y1 - y0) / (x1 - x0);
-//}
-
-
-double I_Na(double V, double m, double h) {
-
-    //Sodium membrane current(in uA / cm ^ 2)
-    return g_Na * pow(m, 3) * h * (V - E_Na);
-}
-
-double I_K(double V, double n) {
-    //Potassium membrane current(in uA / cm ^ 2)
-    return g_K * pow(n, 4) * (V - E_K);
-}
-
-double I_L(double V) {
-
-    //Leak membrane current(in uA / cm ^ 2)
-
-    return g_L * (V - E_L);
-}
-
-double I_inj(double t_query) {
-    // t_query: current time 
-    // Find the index of the closest time point
-    int index = 0;
-    std::vector<double> time_space_local = time_space;
-    for (int i = 0; i < time_space.size(); ++i) {
-        time_space_local[i] = time_space_local[i] - t_query;
-    }
-
-    double smallest = 10000000;
-    int i_smallest = -1;
-    for (int i = 0; i < time_space.size(); ++i) {
-        if (time_space_local[i] < smallest) {
-            i_smallest = i;
-        }
-
-    }
-    // Calculate the index
-    /*if (i_smallest < 0) {
-        std::cout << "[ERROR] double I_inj(double t_query)\n";
-        exit(1);
-    }*/
-    return stepCurrent[i_smallest];
-}
-
-std::vector<double> linspace(double start, double end, int num) {
-    std::vector<double> linspaced;
-
-    if (num == 0) {
-        return linspaced;
-    }
-    if (num == 1) {
-        linspaced.push_back(start);
-        return linspaced;
-    }
-
-    double delta = (end - start) / (num - 1);
-
-    for (int i = 0; i < num - 1; ++i) {
-        linspaced.push_back(start + delta * i);
-    }
-    linspaced.push_back(end); // Ensure that end is exactly at 'end'
-
-    return linspaced;
-}
-
-void ModelWrite(/*const std::vector<double>& y, const double t*/)
-{
-    I_store = { I_Na(y[0], y[1], y[2]), I_K(y[0], y[3]), I_L(y[0]) };
-    t_store.push_back(t_now);
-    V_store.push_back(y[0]);
-    y_store.push_back(y);
-
-    I_Na_store.push_back(I_store[0]);
-    I_K_store.push_back(I_store[1]);
-    I_L_store.push_back(I_store[2]);
-    
-}
-
-void Model(const std::vector<double>& y, std::vector<double>& dxdt, double t)
-{
-    /* data stored in y:
-    * y[0] = Voltage
-    * y[1] = m
-    * y[2] = h
-    * y[3] = n
-    */
-    //I_store = { I_Na(y[0], y[1], y[2]), I_K(y[0], y[3]), I_L(y[0]) }; 
-
-    dxdt[0] = ((I_inj(t)) - I_store[0] - I_store[1] - I_store[3]) / C_m;
-    dxdt[1] = GatingFunctions::alpha_m(y[0]) * (1.0 - y[1]) - GatingFunctions::beta_m(y[0]) * y[1];
-    dxdt[2] = GatingFunctions::alpha_h(y[0]) * (1.0 - y[2]) - GatingFunctions::beta_h(y[0]) * y[2];
-    dxdt[3] = GatingFunctions::alpha_n(y[0]) * (1.0 - y[3]) - GatingFunctions::beta_n(y[0]) * y[3];
-}
-
-void ModelReset() {
-    /* put initial parameters 
-    * 
-    * eventually user input will control this
-    * 
-    */
-    std::cout << "{ModelReset()] Startting.\n";
-    y = { -65, 0.05, 0.6, 0.32 }; // initial conditions
-    double t_now = time_start;
-    n_samples_now = 0;
-    time_space = linspace(time_start, time_end, n_samples);
-    t_now = time_start; 
-    std::vector<std::vector<double>> y_store;
-    t_store = { t_now };
-    V_store = { y[0] };
-    I_store = { y[1],  y[2] , y[3] }; // Na, K, L
-    I_Na_store = { y[1] };
-    I_K_store = { y[2] };
-    I_L_store = { y[3] };
-}
-
-void ModelInit() {
-    n_samples = (int)time_end / dt; // 500 (ms) / 0.1 (dt, step) = 5000 samples
-    time_space = linspace(time_start, time_end, n_samples); 
-
-    y = { -65, 0.05, 0.6, 0.32 }; // initial conditions
-    stepCurrent = InjectionCurrent::Step(time_space, time_start_injection, time_duration_injection, max_injection_amplitude);
-
-    /* prepare initial ion concentrations with initial conditions */
-    I_store = { I_Na(y[0], y[1], y[2]), I_K(y[0], y[3]), I_L(y[0]) };
-
-    std::cout << "[ModelInit()] Initialized model.";
-    
-}
-
-void ModelDoStep() {
-    stepper.do_step(Model, y, t, dt); // basic model
-    n_samples_now += 1; 
-    t_now += dt; 
-}
-
-void run_model() {
-
-}
 
 struct Expression {
     Expression() {
@@ -316,6 +170,274 @@ struct ScrollingBuffer {
     }
 };
 
+static ScrollingBuffer2 V_buff(n_samples), m_buff(n_samples), h_buff(n_samples), n_buff(n_samples);
+
+double I_Na(double V, double m, double h) {
+
+    //Sodium membrane current(in uA / cm ^ 2)
+    return g_Na * pow(m, 3) * h * (V - E_Na);
+}
+
+double I_K(double V, double n) {
+    //Potassium membrane current(in uA / cm ^ 2)
+    return g_K * pow(n, 4) * (V - E_K);
+}
+
+double I_L(double V) {
+
+    //Leak membrane current(in uA / cm ^ 2)
+
+    return g_L * (V - E_L);
+}
+
+double I_inj(double t_query) {
+    // t_query: current time 
+    // Find the index of the closest time point
+    int index = 0;
+    std::vector<double> time_space_local = time_space;
+    for (int i = 0; i < time_space.size(); ++i) {
+        time_space_local[i] = time_space_local[i] - t_query;
+    }
+
+    double smallest = 10000000;
+    int i_smallest = -1;
+    for (int i = 0; i < time_space.size(); ++i) {
+        if (time_space_local[i] < smallest) {
+            i_smallest = i;
+        }
+
+    }
+    
+    return stepCurrent[i_smallest];
+}
+
+std::vector<double> linspace(double start, double end, int num) {
+    std::vector<double> linspaced;
+
+    if (num == 0) {
+        return linspaced;
+    }
+    if (num == 1) {
+        linspaced.push_back(start);
+        return linspaced;
+    }
+
+    double delta = (end - start) / (num - 1);
+
+    for (int i = 0; i < num - 1; ++i) {
+        linspaced.push_back(start + delta * i);
+    }
+    linspaced.push_back(end); // Ensure that end is exactly at 'end'
+
+    return linspaced;
+}
+
+void ModelWrite(/*const std::vector<double>& y, const double t*/)
+{
+    I_store = { I_Na(y[0], y[1], y[2]), I_K(y[0], y[3]), I_L(y[0]) };
+    t_store.push_back(t_now);
+    V_store.push_back(y[0]);
+    y_store.push_back(y);
+
+    I_Na_store.push_back(I_store[0]);
+    I_K_store.push_back(I_store[1]);
+    I_L_store.push_back(I_store[2]);
+
+    /*V_buff.AddPoint(0.0, 0.0);
+    m_buff.AddPoint(t_now, (float)y[1]);
+    h_buff.AddPoint(t_now, (float)y[2]);
+    n_buff.AddPoint(t_now, (float)y[3]);*/
+}
+
+void Model(const std::vector<double>& y, std::vector<double>& dxdt, double t)
+{
+    /* data stored in y:
+    * y[0] = Voltage
+    * y[1] = m
+    * y[2] = h
+    * y[3] = n
+    */
+    //I_store = { I_Na(y[0], y[1], y[2]), I_K(y[0], y[3]), I_L(y[0]) }; 
+    if (I_inj(t) > 0.0) {
+        std::cout << "Stimulus applies: " << t << "time / " << I_inj(t) << " uA\n";
+    }
+
+    std::vector<double> p = { 0.01, 0.0, 1.20, 55.16, 0.36, -72.14, 0.003, -49.42 }; // constant variables
+
+    dxdt[0] = (1 / p[0]) * (p[1] - p[2] * std::pow(y[1], 3) * y[2] * (y[0] - p[3]) - p[4] * std::pow(y[3], 4) * (y[0] - p[5]) - p[6] * (y[0] - p[7]));
+    //dxdt[0] = ((I_inj(t)) - I_store[0] - I_store[1] - I_store[3]) / C_m;
+    dxdt[1] = GatingFunctions::alpha_m(y[0]) * (1.0 - y[1]) - GatingFunctions::beta_m(y[0]) * y[1];
+    dxdt[2] = GatingFunctions::alpha_h(y[0]) * (1.0 - y[2]) - GatingFunctions::beta_h(y[0]) * y[2];
+    dxdt[3] = GatingFunctions::alpha_n(y[0]) * (1.0 - y[3]) - GatingFunctions::beta_n(y[0]) * y[3];
+}
+
+void ModelReset() {
+    /* put initial parameters 
+    * 
+    * eventually user input will control this
+    * 
+    */
+    std::cout << "{ModelReset()] Startting.\n";
+    y = { -65, 0.05, 0.6, 0.32 }; // initial conditions
+    double t_now = time_start;
+    n_samples_now = 0;
+    time_space = linspace(time_start, time_end, n_samples);
+    t_now = time_start; 
+    std::vector<std::vector<double>> y_store;
+    t_store = { t_now };
+    V_store = { y[0] };
+    I_store = { y[1],  y[2] , y[3] }; // Na, K, L
+    I_Na_store = { y[1] };
+    I_K_store = { y[2] };
+    I_L_store = { y[3] };
+}
+
+void HH(const std::vector<double>& y, std::vector<double>& dxdt, double t) {
+    //
+//
+//    /*
+//     * \brief Defines the O.DE system proposed by Hodgking and Huxley as a class
+//     *
+//     * The default constructor receives a std::vector<double> that contains the parameters of the model in the order
+//     *   * Membrane capacitance
+//     *   * Induced current on axon, 0 means no external current
+//     *   * Na conductances
+//     *   * Na Nernst Potential
+//     *   * K Conductance
+//     *   * K Nernst Potential
+//     *   * Leakage conductance (Due to a Cl current)
+//     *   * Leakage Nernst potential (Due to a Cl current)
+//     * Default values: 0.01, 0.0, 1.20, 55.16, 0.36, -72.14, 0.003, -49.42
+//     * Initial conditions: -68, 0.1, 0, 0
+//     * So parameter[0] contains membrane capacitance and so on
+//     * https://github.com/Daniel-M/Hodgking-Huxley/blob/master/include/HH_Model_class.hpp
+//     */
+//    dxdt[0] = (1 / x[0]) * (x[1] - x[2] * pow(y[1], 3) * y[2] * (y[0] - x[3]) - x[4] * pow(y[3], 4) * (y[0] - x[5]) - x[6] * (y[0] - x[7]));
+//    dxdt[1] = alpha_m(y[0]) * (1 - y[1]) - beta_m(y[0]) * y[1];
+//    dxdt[2] = alpha_h(y[0]) * (1 - y[2]) - beta_h(y[0]) * y[2];
+//    dxdt[3] = alpha_n(y[0]) * (1 - y[3]) - beta_n(y[0]) * y[3];
+
+    std::vector<double> p = { 0.01, 0.0, 1.20, 55.16, 0.36, -72.14, 0.003, -49.42 }; // constant variables
+
+    dxdt[0] = (1 / p[0]) * (p[1] - p[2] * std::pow(y[1], 3) * y[2] * (y[0] - p[3]) - p[4] * std::pow(y[3], 4) * (y[0] - p[5]) - p[6] * (y[0] - p[7]));
+    dxdt[1] = GatingFunctions::alpha_m(y[0]) * (1 - y[1]) - GatingFunctions::beta_m(y[0]) * y[1];
+    dxdt[2] = GatingFunctions::alpha_h(y[0]) * (1 - y[2]) - GatingFunctions::beta_h(y[0]) * y[2];
+    dxdt[3] = GatingFunctions::alpha_n(y[0]) * (1 - y[3]) - GatingFunctions::beta_n(y[0]) * y[3];
+}
+
+void PlotModel2() {
+
+    // Create a Plot object
+    sciplot::Plot2D plot;
+    std::cout << "size timespace: " << time_space.size() << "\nsize V_store: " << V_store.size() << "\nsize t_store: " << t_store.size() << std::endl;
+    std::cout << "size I_Na: " << I_Na_store.size() << "\nsize I_K: " << I_K_store.size() << "\nsize I_L_store: " << I_L_store.size() << std::endl;
+
+    // Set the x and y labels
+    plot.xlabel("x");
+    plot.ylabel("y");
+
+    // Set the x and y ranges
+    plot.xrange(time_start, time_end);
+    std::min_element(V_store.begin(), V_store.end());
+    plot.yrange(*std::min_element(V_store.begin(), V_store.end()),
+        *std::max_element(V_store.begin(), V_store.end()));
+
+    // Set the legend to be on the bottom along the horizontal
+    plot.legend()
+        .atOutsideBottom()
+        .displayHorizontal()
+        .displayExpandWidthBy(2);
+    plot.grid();
+
+
+    plot.drawCurve(t_store, V_store).label("V (mV)"); // voltage plot
+
+    // vertical line 
+    std::vector<int> v_line(I_L_store.size(), 0);
+    const double vline_amp = -75; // to do: make this dynamic
+    const int idx_vline = (int)time_start_injection / dt;
+    v_line[idx_vline] = *std::max_element(V_store.begin(), V_store.end());
+    v_line[idx_vline + 1] = vline_amp; // extend vline to create filled effect
+
+
+    plot.drawCurveFilled(t_store, v_line);
+
+    sciplot::Figure fig = { {plot} };
+    // Create canvas to hold figure
+    sciplot::Canvas canvas = { {fig} };
+
+    // Show the plot in a pop-up window
+    canvas.show();
+
+}
+
+void write_model(const std::vector<double>& y, const double t)
+{
+    I_store = { I_Na(y[0], y[1], y[2]), I_K(y[0], y[3]), I_L(y[0]) };
+
+    //++n_samples;
+    //if (n_samples == MAX_SAMPLES) { 
+    //    exit(1); 
+    //}
+    t_now = t_now + dt;
+    t_store.push_back(t);
+    //t_store.push_back(t_now); // og
+    V_store.push_back(y[0]);
+    //V_buff.AddPoint(t_now, (float)y[0]);
+}
+
+void SolveModel2() {
+    double dt = 0.1;
+    n_samples = (int)(time_end / dt);
+    size_t steps = boost::numeric::odeint::integrate(HH, y, time_start, time_end, dt, write_model);
+
+    /*for (int i = 0; i < V_store.size(); ++i) {
+        V_buff.AddPoint((float)t_store[i], (float)V_store[i]);
+    }*/
+}
+
+void HandleModelThread() {
+    if (!bIsThreadRunning) {
+        std::cout << "Starting SolveModel thread.\n";
+        bIsThreadRunning = true;
+
+        /* create */
+        std::thread t(SolveModel2);
+
+        /* wait for thread to finish */
+        t.join();
+        std::cout << "Ending SolveModel thread.\n";
+        bIsThreadRunning = false;
+    }
+    else {
+        std::cout << "SolveModel thread already running.\n";
+    }
+}
+
+void ModelInit() {
+    n_samples = (int)time_end / dt; // 500 (ms) / 0.1 (dt, step) = 5000 samples
+    time_space = linspace(time_start, time_end, n_samples); 
+
+    y = { -65, 0.05, 0.6, 0.32 }; // initial conditions
+    stepCurrent = InjectionCurrent::Step(time_space, time_start_injection, time_duration_injection, max_injection_amplitude);
+
+    /* prepare initial ion concentrations with initial conditions */
+    I_store = { I_Na(y[0], y[1], y[2]), I_K(y[0], y[3]), I_L(y[0]) };
+
+    std::cout << "[ModelInit()] Initialized model.";
+    
+}
+
+void ModelDoStep() {
+    stepper.do_step(Model, y, t, dt); // basic model
+    n_samples_now += 1; 
+    t_now += dt; 
+}
+
+void run_model() {
+
+}
+
 struct RollingBuffer {
     float Span;
     ImVector<ImVec2> Data;
@@ -336,16 +458,34 @@ struct ImGraph : App {
     Expression expr;
     ImPlotRect limits;
 
+    /* thread params */
+    bool bIsThreadRunning = false;
+
     using App::App;
 
     void Start() override {
+        std::cout << "Starting App.\n bIsThreadRunning = false.\n";
         expr.set("0.25*sin(2*pi*5*x)+0.5");
         expr.color = ImVec4(1, 0.75f, 0, 1);
-
-        /* initialize model */
-        
+        bIsThreadRunning = false;
+        ModelInit();
 
     }
+
+    //void HandleModelThread() {
+    //    if (!bIsThreadRunning) {
+    //        std::cout << "Starting SolveModel thread.\n";
+    //        bIsThreadRunning = true;
+
+    //        /* create */
+    //        std::thread t(SolveModel2);
+
+    //        /* wait for thread to finish */
+    //        t.join();
+    //        std::cout << "Ending SolveModel thread.\n";
+    //        bIsThreadRunning = false;
+    //    }
+    //}
 
     void InitializePlot() {
         ImGui::SetNextWindowSize(GetWindowSize());
@@ -371,36 +511,33 @@ struct ImGraph : App {
             ModelDoStep(); // does n_samples_now += 1; 
             ModelWrite();
         }
-        else {
-            ModelReset();
-        }
-        //if (n_samples_now <= n_samples) { ModelDoStep(); ModelWrite(); else { ModelReset(); } }
-
-
-        static ScrollingBuffer t_now_data, V_data, m_data, h_data, n_data;
+        else { ModelReset(); }
+        
         static ScrollingBuffer2 V_buff, m_buff, h_buff, n_buff;
-
         static ScrollingBuffer2 step_current_buff; 
-        /* PRIORITY: will change, just want to go to sleep so bad but want to see it run. sorry.*/
-      
 
-        /* demo stuff */
-        static ScrollingBuffer2 sdata1;
-        ImVec2 mouse = ImGui::GetMousePos();
         static float t = 0;
-        //t += ImGui::GetIO().DeltaTime;
         t += ImGui::GetIO().DeltaTime;
+
+        /* add points */
         V_buff.AddPoint(t, (float)y[0]);
         step_current_buff.AddPoint(t, (float)stepCurrent[n_samples_now]);
 
-        static float history = (int)time_end/100 + 5; // ms / 1000 = s
+        /* control history with a slider*/
+        static float history = (int)time_end/100 + 5;
         ImGui::SliderFloat("History", &history, 1, 100, "%.1f s");
         const float span = history;
+
+        /* set flags if any*/
         static ImPlotAxisFlags flags;
 
-        /* end demo */
-        if (ImPlot::BeginPlot("##Scrolling", ImVec2(-1, 150))) {
-            //ImPlot::SetupAxes(nullptr, nullptr, flags, flags);
+        if (V_buff.Data.Size < 1) {
+            std::cout << "V_buff empty. Waiting for model to be finished.\n";
+            return;
+        }
+
+        if (ImPlot::BeginPlot("##Scrolling", ImVec2(-1, 350))) {
+
             ImPlot::SetupAxis(ImAxis_X1, "X1", ImPlotAxisFlags_AuxDefault);
             ImPlot::SetupAxisLimits(ImAxis_X1, t - history, t, ImGuiCond_Always);
 
@@ -408,74 +545,24 @@ struct ImGraph : App {
             ImPlot::SetupAxisLimits(ImAxis_Y1, -80.0, -60.0);
 
             ImPlot::SetupAxis(ImAxis_Y2, "Y2", ImPlotAxisFlags_AuxDefault);
-            ImPlot::SetupAxisLimits(ImAxis_Y2, 0, max_injection_amplitude + 3);
-
+            ImPlot::SetupAxisLimits(ImAxis_Y2, 0, max_injection_amplitude*2);
 
             ImPlot::SetAxes(ImAxis_X1, ImAxis_Y1);
             ImPlot::PlotLine("Mouse X", &V_buff.Data[0].x, &V_buff.Data[0].y, V_buff.Data.size(), 0, V_buff.Offset, 2 * sizeof(float));
             
             ImPlot::SetNextFillStyle(IMPLOT_AUTO_COL, 0.5f);
+
             ImPlot::SetAxes(ImAxis_X1, ImAxis_Y2);
             ImPlot::PlotLine("Mouse X", &step_current_buff.Data[0].x, &step_current_buff.Data[0].y, step_current_buff.Data.size(), 0, step_current_buff.Offset, 2 * sizeof(float));
-            ImPlot::EndPlot();
-        }
-    }
-
-    void Demo_RealtimePlots() {
-        ImGui::BulletText("Move your mouse to change the data!");
-        ImGui::BulletText("This example assumes 60 FPS. Higher FPS requires larger buffer size.");
-        static ScrollingBuffer2 sdata1, sdata2;
-        static RollingBuffer   rdata1, rdata2;
-//+       static RollingBufferV  t_buff, V_buff;
-
-        ImVec2 mouse = ImGui::GetMousePos();
-        static float t = 0;
-        t += ImGui::GetIO().DeltaTime;
-        sdata1.AddPoint(t, mouse.x * 0.0005f);
-        rdata1.AddPoint(t, mouse.x * 0.0005f);
-        sdata2.AddPoint(t, mouse.y * 0.0005f);
-        rdata2.AddPoint(t, mouse.y * 0.0005f);
-
-        ImGui::SliderFloat("History", &history, 1, 30, "%.1f s");
-        rdata1.Span = history;
-        rdata2.Span = history;
-
-        static ImPlotAxisFlags flags = ImPlotAxisFlags_NoTickLabels;
-
-        if (ImPlot::BeginPlot("##Scrolling", ImVec2(-1, 150))) {
-            ImPlot::SetupAxes(nullptr, nullptr, flags, flags);
-            ImPlot::SetupAxisLimits(ImAxis_X1, t - history, t, ImGuiCond_Always);
-            ImPlot::SetupAxisLimits(ImAxis_Y1, 0, 1);
-            ImPlot::SetNextFillStyle(IMPLOT_AUTO_COL, 0.5f);
-            ImPlot::PlotShaded("Mouse X", &sdata1.Data[0].x, &sdata1.Data[0].y, sdata1.Data.size(), -INFINITY, 0, sdata1.Offset, 2 * sizeof(float));
-            ImPlot::PlotLine("Mouse Y", &sdata2.Data[0].x, &sdata2.Data[0].y, sdata2.Data.size(), 0, sdata2.Offset, 2 * sizeof(float));
-            ImPlot::EndPlot();
-        }
-        if (ImPlot::BeginPlot("##Rolling", ImVec2(-1, 150))) {
-            ImPlot::SetupAxes(nullptr, nullptr, flags, flags);
-            ImPlot::SetupAxisLimits(ImAxis_X1, 0, history, ImGuiCond_Always);
-            ImPlot::SetupAxisLimits(ImAxis_Y1, 0, 1);
-            ImPlot::PlotLine("Mouse X", &t, &rdata1.Data[0].y, rdata1.Data.size(), 0, 0, 2 * sizeof(float));
-            ImPlot::PlotLine("Mouse Y", &rdata2.Data[0].x, &rdata2.Data[0].y, rdata2.Data.size(), 0, 0, 2 * sizeof(float));
+           
             ImPlot::EndPlot();
         }
     }
 
     void Update() override {
-
         this->InitializePlot();
-
-        /* check if plot only still model */
-        if (true) 
-        {
-
-            PlotModel();
-        }
-        else 
-        {
-            this->Demo_RealtimePlots();
-        }
-    ImGui::End();
+        PlotModel();
+        ImGui::End();
     }
 };
 
@@ -485,7 +572,15 @@ int main(int argc, char const* argv[])
     //run_model();
     ModelInit();
     /* run GUI only */
-    ImGraph app("Hodkin-Huxley Simulation by Felix A. Maldonado", 640, 480, argc, argv);
-    app.Run();
+
+    bool bRunModel2 = false;
+    if (bRunModel2) {
+        HandleModelThread();
+        PlotModel2();
+    }
+    else {
+        ImGraph app("Hodkin-Huxley Simulation by Felix A. Maldonado", 900, 720, argc, argv);
+        app.Run();
+    }
     return 0;
 }
