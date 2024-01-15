@@ -378,15 +378,11 @@ struct ImGraph : App {
 
 
         static ScrollingBuffer t_now_data, V_data, m_data, h_data, n_data;
-        static ScrollingBuffer2 V;
+        static ScrollingBuffer2 V_buff, m_buff, h_buff, n_buff;
 
-        V.AddPoint((float)t_now, (float)y[0]);
+        static ScrollingBuffer2 step_current_buff; 
         /* PRIORITY: will change, just want to go to sleep so bad but want to see it run. sorry.*/
-        t_now_data.AddPoint(t_now);
-        V_data.AddPoint(y[0]);
-        m_data.AddPoint(y[1]);
-        h_data.AddPoint(y[2]);
-        n_data.AddPoint(y[3]);
+      
 
         /* demo stuff */
         static ScrollingBuffer2 sdata1;
@@ -394,7 +390,8 @@ struct ImGraph : App {
         static float t = 0;
         //t += ImGui::GetIO().DeltaTime;
         t += ImGui::GetIO().DeltaTime;
-        sdata1.AddPoint(t, (float)y[0]);
+        V_buff.AddPoint(t, (float)y[0]);
+        step_current_buff.AddPoint(t, (float)stepCurrent[n_samples_now]);
 
         static float history = (int)time_end/100 + 5; // ms / 1000 = s
         ImGui::SliderFloat("History", &history, 1, 100, "%.1f s");
@@ -403,14 +400,25 @@ struct ImGraph : App {
 
         /* end demo */
         if (ImPlot::BeginPlot("##Scrolling", ImVec2(-1, 150))) {
-            ImPlot::SetupAxes(nullptr, nullptr, flags, flags);
+            //ImPlot::SetupAxes(nullptr, nullptr, flags, flags);
+            ImPlot::SetupAxis(ImAxis_X1, "X1", ImPlotAxisFlags_AuxDefault);
             ImPlot::SetupAxisLimits(ImAxis_X1, t - history, t, ImGuiCond_Always);
+
+            ImPlot::SetupAxis(ImAxis_Y1, "Y1", ImPlotAxisFlags_AuxDefault);
             ImPlot::SetupAxisLimits(ImAxis_Y1, -80.0, -60.0);
+
+            ImPlot::SetupAxis(ImAxis_Y2, "Y2", ImPlotAxisFlags_AuxDefault);
+            ImPlot::SetupAxisLimits(ImAxis_Y2, 0, max_injection_amplitude + 3);
+
+
+            ImPlot::SetAxes(ImAxis_X1, ImAxis_Y1);
+            ImPlot::PlotLine("Mouse X", &V_buff.Data[0].x, &V_buff.Data[0].y, V_buff.Data.size(), 0, V_buff.Offset, 2 * sizeof(float));
+            
             ImPlot::SetNextFillStyle(IMPLOT_AUTO_COL, 0.5f);
-            ImPlot::PlotLine("Mouse X", &sdata1.Data[0].x, &sdata1.Data[0].y, sdata1.Data.size(), 0, sdata1.Offset, 2 * sizeof(float));
+            ImPlot::SetAxes(ImAxis_X1, ImAxis_Y2);
+            ImPlot::PlotLine("Mouse X", &step_current_buff.Data[0].x, &step_current_buff.Data[0].y, step_current_buff.Data.size(), 0, step_current_buff.Offset, 2 * sizeof(float));
             ImPlot::EndPlot();
         }
-      
     }
 
     void Demo_RealtimePlots() {
